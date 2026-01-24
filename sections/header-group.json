@@ -12,24 +12,39 @@
   "type": "header",
   "sections": {
     "header": {
-      "type": "header",
+      "type": "header2",
       "settings": {
-        "logo_position": "middle-left",
-        "mobile_logo_position": "center",
-        "menu": "main-menu",
-        "menu_type_desktop": "dropdown",
-        "sticky_header_type": "always",
-        "show_line_separator": false,
-        "enable_minimal_header": true,
-        "color_scheme": "scheme-1",
-        "menu_color_scheme": "scheme-1",
-        "enable_country_selector": false,
-        "enable_language_selector": false,
-        "enable_customer_avatar": false,
-        "margin_bottom": 0,
-        "padding_top": 16,
-        "padding_bottom": 16
-      }
+        "logo_width": 100,
+        "color_scheme": "scheme-1"
+      },
+      "blocks": {
+        "menu_item_1": {
+          "type": "menu_item",
+          "settings": {
+            "label": "Shop",
+            "link": "/collections/all"
+          }
+        },
+        "menu_item_2": {
+          "type": "menu_item",
+          "settings": {
+            "label": "About",
+            "link": "/pages/about"
+          }
+        },
+        "menu_item_3": {
+          "type": "menu_item",
+          "settings": {
+            "label": "Contact",
+            "link": "/pages/contact"
+          }
+        }
+      },
+      "block_order": [
+        "menu_item_1",
+        "menu_item_2",
+        "menu_item_3"
+      ]
     }
   },
   "order": [
