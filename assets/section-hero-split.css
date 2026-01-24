@@ -1,0 +1,82 @@
+/* Hero Split Section - Edge to edge, borderless images with preserved aspect ratio */
+
+.section-hero-split {
+  margin: 0;
+  padding: 0;
+}
+
+.hero-split {
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-split__container {
+  display: flex;
+  width: 100%;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-split__media {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.hero-split__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.hero-split__link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.hero-split__placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(var(--color-foreground), 0.05);
+}
+
+.hero-split__media--placeholder {
+  aspect-ratio: 3 / 4;
+}
+
+/* Mobile layout - stacked by default */
+@media screen and (max-width: 749px) {
+  .hero-split__container {
+    flex-direction: column;
+  }
+
+  .hero-split__media {
+    width: 100%;
+  }
+
+  /* Side by side option for mobile */
+  .hero-split--mobile-side-by-side .hero-split__container {
+    flex-direction: row;
+  }
+
+  .hero-split--mobile-side-by-side .hero-split__media {
+    width: 50%;
+  }
+}
+
+/* Desktop - always side by side */
+@media screen and (min-width: 750px) {
+  .hero-split__container {
+    flex-direction: row;
+  }
+
+  .hero-split__media {
+    width: 50%;
+  }
+}

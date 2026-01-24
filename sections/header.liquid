@@ -74,6 +74,87 @@
       padding-top: 0.5rem;
     }
   }
+
+  /* Minimal header - scale on scroll */
+  .header-wrapper--minimal {
+    background-color: transparent;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    transition: background-color 0.3s ease;
+  }
+
+  .header-wrapper--minimal .header {
+    padding-top: 1.6rem;
+    padding-bottom: 1.6rem;
+    transition: padding 0.3s ease;
+  }
+
+  .header-wrapper--minimal .header__menu-item {
+    font-size: 1.2rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    transition: font-size 0.3s ease, padding 0.3s ease;
+  }
+
+  .header-wrapper--minimal .header__heading-link .h2 {
+    font-size: 1.2rem;
+    letter-spacing: 0.08rem;
+    text-transform: uppercase;
+    transition: font-size 0.3s ease;
+  }
+
+  .header-wrapper--minimal .header__icon {
+    transition: transform 0.3s ease;
+  }
+
+  .header-wrapper--minimal .header__heading-logo-wrapper {
+    transition: transform 0.3s ease;
+  }
+
+  /* Scrolled state - header scales down */
+  .scrolled-past-header.header-wrapper--minimal {
+    background-color: rgb(var(--color-background));
+  }
+
+  .scrolled-past-header.header-wrapper--minimal .header {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .scrolled-past-header.header-wrapper--minimal .header__menu-item {
+    font-size: 1.1rem;
+    padding-top: 0.8rem;
+    padding-bottom: 0.8rem;
+  }
+
+  .scrolled-past-header.header-wrapper--minimal .header__heading-link .h2 {
+    font-size: 1.1rem;
+  }
+
+  .scrolled-past-header.header-wrapper--minimal .header__heading-logo-wrapper {
+    transform: scale(0.85);
+  }
+
+  .scrolled-past-header.header-wrapper--minimal .header__icon .svg-wrapper {
+    transform: scale(0.9);
+  }
+
+  /* When minimal header is enabled, content should start from top */
+  .section-header:has(.header-wrapper--minimal) {
+    position: relative;
+  }
+
+  .section-header:has(.header-wrapper--minimal) + main {
+    margin-top: 0;
+  }
+
+  /* Ensure hero content goes edge to edge */
+  .section-header:has(.header-wrapper--minimal) ~ main .section-hero-split:first-child {
+    margin-top: 0;
+  }
 </style>
 
 {%- style -%}
@@ -122,7 +203,7 @@
   {% if header_tag == 'sticky-header' %}
     data-sticky-type="{{ section.settings.sticky_header_type }}"
   {% endif %}
-  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}"
+  class="header-wrapper color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator %} header-wrapper--border-bottom{% endif %}{% if section.settings.enable_minimal_header %} header-wrapper--minimal{% endif %}"
 >
   {%- liquid
     assign social_links = false
@@ -320,6 +401,7 @@
 
     connectedCallback() {
       this.header = document.querySelector('.section-header');
+      this.headerWrapper = this.querySelector('.header-wrapper');
       this.headerIsAlwaysSticky =
         this.getAttribute('data-sticky-type') === 'always' ||
         this.getAttribute('data-sticky-type') === 'reduce-logo-size';
@@ -371,10 +453,12 @@
 
       if (scrollTop > this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
         this.header.classList.add('scrolled-past-header');
+        if (this.headerWrapper) this.headerWrapper.classList.add('scrolled-past-header');
         if (this.preventHide) return;
         requestAnimationFrame(this.hide.bind(this));
       } else if (scrollTop < this.currentScrollTop && scrollTop > this.headerBounds.bottom) {
         this.header.classList.add('scrolled-past-header');
+        if (this.headerWrapper) this.headerWrapper.classList.add('scrolled-past-header');
         if (!this.preventReveal) {
           requestAnimationFrame(this.reveal.bind(this));
         } else {
@@ -388,6 +472,7 @@
         }
       } else if (scrollTop <= this.headerBounds.top) {
         this.header.classList.remove('scrolled-past-header');
+        if (this.headerWrapper) this.headerWrapper.classList.remove('scrolled-past-header');
         requestAnimationFrame(this.reset.bind(this));
       }
 
@@ -568,6 +653,13 @@
       "id": "show_line_separator",
       "default": true,
       "label": "t:sections.header.settings.show_line_separator.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_minimal_header",
+      "default": false,
+      "label": "Enable minimal header",
+      "info": "Fixed transparent header that scales down on scroll. Best for hero-style homepages."
     },
     {
       "type": "header",

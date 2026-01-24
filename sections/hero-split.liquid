@@ -1,0 +1,140 @@
+{{ 'section-hero-split.css' | asset_url | stylesheet_tag }}
+
+<section
+  id="Hero-{{ section.id }}"
+  class="hero-split{% if section.settings.mobile_layout == 'side-by-side' %} hero-split--mobile-side-by-side{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}"
+>
+  <div class="hero-split__container">
+    {%- if section.settings.image_left != blank -%}
+      <div class="hero-split__media hero-split__media--left">
+        {%- liquid
+          assign image_height = section.settings.image_left.width | divided_by: section.settings.image_left.aspect_ratio
+        -%}
+        {{
+          section.settings.image_left
+          | image_url: width: 1920
+          | image_tag:
+            class: 'hero-split__image',
+            loading: 'eager',
+            fetchpriority: 'high',
+            sizes: '50vw',
+            widths: '375, 550, 750, 960, 1100, 1280, 1500, 1780, 1920',
+            width: section.settings.image_left.width,
+            height: image_height
+        }}
+        {%- if section.settings.link_left != blank -%}
+          <a href="{{ section.settings.link_left }}" class="hero-split__link" aria-label="{{ section.settings.link_left_label | default: 'View' }}"></a>
+        {%- endif -%}
+      </div>
+    {%- else -%}
+      <div class="hero-split__media hero-split__media--left hero-split__media--placeholder">
+        {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero-split__placeholder' }}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.image_right != blank -%}
+      <div class="hero-split__media hero-split__media--right">
+        {%- liquid
+          assign image_height_right = section.settings.image_right.width | divided_by: section.settings.image_right.aspect_ratio
+        -%}
+        {{
+          section.settings.image_right
+          | image_url: width: 1920
+          | image_tag:
+            class: 'hero-split__image',
+            loading: 'eager',
+            fetchpriority: 'high',
+            sizes: '50vw',
+            widths: '375, 550, 750, 960, 1100, 1280, 1500, 1780, 1920',
+            width: section.settings.image_right.width,
+            height: image_height_right
+        }}
+        {%- if section.settings.link_right != blank -%}
+          <a href="{{ section.settings.link_right }}" class="hero-split__link" aria-label="{{ section.settings.link_right_label | default: 'View' }}"></a>
+        {%- endif -%}
+      </div>
+    {%- else -%}
+      <div class="hero-split__media hero-split__media--right hero-split__media--placeholder">
+        {{ 'hero-apparel-2' | placeholder_svg_tag: 'hero-split__placeholder' }}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero Split",
+  "tag": "section",
+  "class": "section-hero-split",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "Left Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_left",
+      "label": "Left image"
+    },
+    {
+      "type": "url",
+      "id": "link_left",
+      "label": "Left image link"
+    },
+    {
+      "type": "text",
+      "id": "link_left_label",
+      "label": "Left image link label",
+      "default": "View collection"
+    },
+    {
+      "type": "header",
+      "content": "Right Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_right",
+      "label": "Right image"
+    },
+    {
+      "type": "url",
+      "id": "link_right",
+      "label": "Right image link"
+    },
+    {
+      "type": "text",
+      "id": "link_right_label",
+      "label": "Right image link label",
+      "default": "View collection"
+    },
+    {
+      "type": "header",
+      "content": "Mobile Settings"
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile layout",
+      "options": [
+        {
+          "value": "stacked",
+          "label": "Stacked"
+        },
+        {
+          "value": "side-by-side",
+          "label": "Side by side"
+        }
+      ],
+      "default": "stacked"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero Split"
+    }
+  ]
+}
+{% endschema %}
