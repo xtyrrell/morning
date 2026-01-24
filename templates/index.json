@@ -1,8 +1,23 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero_split": {
       "type": "hero-split",
       "settings": {
+        "image_left": "shopify://shop_images/IMG_1328_copy_2.jpg",
+        "link_left": "",
+        "link_left_label": "View collection",
+        "image_right": "shopify://shop_images/B016522B-D335-43BF-8F22-5CC986817E2A.jpg",
+        "link_right": "",
+        "link_right_label": "View collection",
         "mobile_layout": "stacked"
       }
     }
