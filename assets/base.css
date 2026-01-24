@@ -882,7 +882,7 @@ summary::-webkit-details-marker {
   margin-bottom: 2rem;
   padding: 0;
   list-style: none;
-  column-gap: var(--grid-mobile-horizontal-spacing);
+  column-gap: 0;
   row-gap: var(--grid-mobile-vertical-spacing);
 }
 
@@ -3595,3 +3595,4 @@ details-disclosure > details {
     transform: translateX(100%) scaleX(0);
   }
 }
+
