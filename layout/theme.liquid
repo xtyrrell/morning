@@ -296,9 +296,23 @@
         document.documentElement.classList.add('shopify-design-mode');
       }
     </script>
+    <style>
+      /* About is a separate view: on homepage, hide About section until user clicks About */
+      body.template-index .about-split {
+        display: none !important;
+      }
+      /* When viewing About (#about): show only About section, hide hero */
+      body.template-index.about-page-active .about-split {
+        display: block !important;
+      }
+      body.template-index.about-page-active .hero-split {
+        display: none !important;
+      }
+    </style>
   </head>
 
-  <body class="gradient{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}">
+  <body class="gradient template-{{ template.name }}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}">
+  <!-- EDITING FROM CURSOR -->
     <a class="skip-to-content-link button visually-hidden" href="#MainContent">
       {{ 'accessibility.skip_to_text' | t }}
     </a>
@@ -323,6 +337,20 @@
       <li id="a11y-new-window-message">{{ 'accessibility.link_messages.new_window' | t }}</li>
     </ul>
 
+    <script>
+      (function() {
+        function updateAboutPageActive() {
+          if (window.location.hash === '#about') {
+            document.body.classList.add('about-page-active');
+            window.scrollTo(0, 0);
+          } else {
+            document.body.classList.remove('about-page-active');
+          }
+        }
+        updateAboutPageActive();
+        window.addEventListener('hashchange', updateAboutPageActive);
+      })();
+    </script>
     <script>
       window.shopUrl = '{{ request.origin }}';
       window.routes = {

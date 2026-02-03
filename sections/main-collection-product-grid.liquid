@@ -26,6 +26,10 @@
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
     padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+    width: 100%;
   }
 
   @media screen and (min-width: 750px) {
@@ -147,7 +151,7 @@
               id="product-grid"
               data-id="{{ section.id }}"
               class="
-                grid product-grid grid--{{ section.settings.columns_mobile }}-col-tablet-down
+                grid product-grid grid--gapless grid--{{ section.settings.columns_mobile }}-col-tablet-down
                 grid--{{ section.settings.columns_desktop }}-col-desktop
                 {% if section.settings.quick_add == 'bulk' %} collection-quick-add-bulk{% endif %}
               "

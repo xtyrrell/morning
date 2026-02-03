@@ -8,16 +8,51 @@
       margin-top: 2rem;
     }
   }
+
+  .template-404 .about-404-steps {
+    text-align: left;
+    max-width: 36rem;
+    margin: 2rem auto;
+    padding: 1.5rem 2rem;
+    background: rgb(var(--color-background));
+    border: 1px solid rgba(var(--color-foreground), 0.1);
+    border-radius: var(--media-radius);
+  }
+
+  .template-404 .about-404-steps ol {
+    margin: 0 0 0 1.25rem;
+    padding: 0;
+  }
+
+  .template-404 .about-404-steps li {
+    margin-bottom: 0.5rem;
+  }
 </style>
 
 <div class="template-404 page-width page-margin center">
-  <p>
-    {{ 'templates.404.subtext' | t }}
-  </p>
-  <h1 class="title">
-    {{ 'templates.404.title' | t }}
-  </h1>
-  <a href="{{ routes.all_products_collection_url }}" class="button">
-    {{ 'general.continue_shopping' | t }}
-  </a>
+  {%- if request.path == '/pages/about' or request.path == '/pages/about/' -%}
+    <h1 class="title">About page not found</h1>
+    <p>This page doesn’t exist yet. Create it in your Shopify admin:</p>
+    <div class="about-404-steps">
+      <ol>
+        <li>Go to <strong>Online Store → Pages</strong> (or <strong>Content → Pages</strong>).</li>
+        <li>Click <strong>Add page</strong>.</li>
+        <li>Set the <strong>Title</strong> to <strong>About</strong>.</li>
+        <li>In <strong>Search engine listing</strong>, set the URL handle to <strong>about</strong> so the link is <code>/pages/about</code>.</li>
+        <li>Add your content and choose the <strong>About</strong> theme template if you want the split layout.</li>
+        <li>Click <strong>Save</strong> and make sure the page is <strong>Published</strong>.</li>
+      </ol>
+    </div>
+    <a href="{{ routes.root_url }}" class="button">Back to home</a>
+  {%- else -%}
+    <p>
+      {{ 'templates.404.subtext' | t }}
+    </p>
+    <h1 class="title">
+      {{ 'templates.404.title' | t }}
+    </h1>
+    <a href="{{ routes.all_products_collection_url }}" class="button">
+      {{ 'general.continue_shopping' | t }}
+    </a>
+  {%- endif -%}
 </div>

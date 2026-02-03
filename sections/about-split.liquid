@@ -1,0 +1,86 @@
+{{ 'section-about-split.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+{%- endstyle -%}
+
+<div id="about" class="about-split section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
+  <div class="about-split__grid">
+    <div class="about-split__media-wrapper">
+      {%- if section.settings.image != blank -%}
+        <div class="about-split__media-list">
+          <div class="about-split__media-item">
+            <img
+              src="{{ section.settings.image | image_url: width: 1200 }}"
+              srcset="
+                {{ section.settings.image | image_url: width: 600 }} 600w,
+                {{ section.settings.image | image_url: width: 900 }} 900w,
+                {{ section.settings.image | image_url: width: 1200 }} 1200w,
+                {{ section.settings.image | image_url: width: 1600 }} 1600w
+              "
+              sizes="50vw"
+              alt="{{ section.settings.image.alt | default: page.title | escape }}"
+              loading="eager"
+              width="{{ section.settings.image.width }}"
+              height="{{ section.settings.image.height }}"
+            >
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+    <div class="about-split__content-wrapper">
+      <div class="about-split__content">
+        <h1 class="about-split__title h0">
+          {{ page.title | default: section.settings.heading | escape }}
+        </h1>
+        <div class="about-split__text rte">
+          {{ page.content | default: section.settings.text }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "About (split)",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image (left side)"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading (fallback if no page title)"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text (fallback if no page content)"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    }
+  ],
+  "presets": [
+    {
+      "name": "About (split)",
+      "settings": {
+        "image": "shopify://shop_images/B016522B-D335-43BF-8F22-5CC986817E2A.jpg",
+        "heading": "About",
+        "color_scheme": "scheme-1"
+      }
+    }
+  ]
+}
+{% endschema %}

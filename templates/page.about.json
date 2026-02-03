@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "about_split": {
+      "type": "about-split",
+      "settings": {
+        "image": "shopify://shop_images/B016522B-D335-43BF-8F22-5CC986817E2A.jpg",
+        "heading": "About",
+        "color_scheme": "scheme-1"
+      }
+    }
+  },
+  "order": [
+    "about_split"
+  ]
+}

@@ -29,7 +29,7 @@
           "type": "menu_item",
           "settings": {
             "label": "About",
-            "link": "/pages/about"
+            "link": "/#about"
           }
         },
         "menu_item_3": {

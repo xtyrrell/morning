@@ -204,6 +204,23 @@
               </p>
             {%- endif -%}
 
+            {%- assign full_desc = card_product.description | strip_html -%}
+            {%- assign desc_lines = full_desc | newline_to_br | split: '<br />' -%}
+            {%- assign clean_desc = '' -%}
+            {%- for line in desc_lines -%}
+              {%- assign trimmed_line = line | strip -%}
+              {%- unless trimmed_line contains 'mm' or trimmed_line contains '202' or trimmed_line == blank -%}
+                {%- if clean_desc == '' -%}
+                  {%- assign clean_desc = trimmed_line -%}
+                {%- endif -%}
+              {%- endunless -%}
+            {%- endfor -%}
+            {%- if clean_desc != blank -%}
+              <p class="card__description" style="display: block !important; font-size: 1.2rem; margin: 0 0 0.5rem 0; color: #000;">
+                {{ clean_desc | truncate: 100 }}
+              </p>
+            {%- endif -%}
+
             {% render 'price', product: card_product, price_class: '', show_compare_at_price: true %}
             {%- if card_product.quantity_price_breaks_configured? -%}
               {% if card_product.variants_count == 1 and quick_add == 'bulk' %}

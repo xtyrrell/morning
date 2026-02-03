@@ -1,27 +1,80 @@
-{{ 'section-main-page.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign is_about_page = false
+  assign handle_lower = page.handle | downcase
+  assign title_lower = page.title | downcase
+  if handle_lower == 'about'
+    assign is_about_page = true
+  elsif handle_lower contains 'about'
+    assign is_about_page = true
+  elsif title_lower == 'about'
+    assign is_about_page = true
+  elsif title_lower contains 'about'
+    assign is_about_page = true
+  endif
+-%}
 
-{%- style -%}
-  .section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-  }
-
-  @media screen and (min-width: 750px) {
-    .section-{{ section.id }}-padding {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
-  }
-{%- endstyle -%}
-
-<div class="page-width page-width--narrow section-{{ section.id }}-padding">
-  <h1 class="main-page-title page-title h0{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
-    {{ page.title | escape }}
-  </h1>
-  <div class="rte{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
-    {{ page.content }}
+{%- if is_about_page and section.settings.about_image != blank -%}
+  {{ 'section-about-split.css' | asset_url | stylesheet_tag }}
+  <div class="about-split section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
+    <div class="about-split__grid">
+      <div class="about-split__media-wrapper">
+        <div class="about-split__media-list">
+          <div class="about-split__media-item">
+            <img
+              src="{{ section.settings.about_image | image_url: width: 1200 }}"
+              srcset="
+                {{ section.settings.about_image | image_url: width: 600 }} 600w,
+                {{ section.settings.about_image | image_url: width: 900 }} 900w,
+                {{ section.settings.about_image | image_url: width: 1200 }} 1200w,
+                {{ section.settings.about_image | image_url: width: 1600 }} 1600w
+              "
+              sizes="50vw"
+              alt="{{ section.settings.about_image.alt | default: page.title | escape }}"
+              loading="eager"
+              width="{{ section.settings.about_image.width }}"
+              height="{{ section.settings.about_image.height }}"
+            >
+          </div>
+        </div>
+      </div>
+      <div class="about-split__content-wrapper">
+        <div class="about-split__content">
+          <h1 class="about-split__title h0">
+            {{ page.title | escape }}
+          </h1>
+          <div class="about-split__text rte">
+            {{ page.content }}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+{%- else -%}
+  {{ 'section-main-page.css' | asset_url | stylesheet_tag }}
+
+  {%- style -%}
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    }
+
+    @media screen and (min-width: 750px) {
+      .section-{{ section.id }}-padding {
+        padding-top: {{ section.settings.padding_top }}px;
+        padding-bottom: {{ section.settings.padding_bottom }}px;
+      }
+    }
+  {%- endstyle -%}
+
+  <div class="page-width page-width--narrow section-{{ section.id }}-padding">
+    <h1 class="main-page-title page-title h0{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
+      {{ page.title | escape }}
+    </h1>
+    <div class="rte{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
+      {{ page.content }}
+    </div>
+  </div>
+{%- endif -%}
 
 {% schema %}
 {
@@ -29,6 +82,25 @@
   "tag": "section",
   "class": "section",
   "settings": [
+    {
+      "type": "header",
+      "content": "About page layout"
+    },
+    {
+      "type": "paragraph",
+      "content": "When the page handle is 'about', the image below appears on the left with scroll; page content on the right."
+    },
+    {
+      "type": "image_picker",
+      "id": "about_image",
+      "label": "About page image (left side)"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "About page color scheme",
+      "default": "scheme-1"
+    },
     {
       "type": "header",
       "content": "t:sections.all.padding.section_padding_heading"

@@ -20,9 +20,19 @@
         "link_right_label": "View collection",
         "mobile_layout": "stacked"
       }
+    },
+    "about_split": {
+      "type": "about-split",
+      "settings": {
+        "image": "shopify://shop_images/B016522B-D335-43BF-8F22-5CC986817E2A.jpg",
+        "heading": "About",
+        "text": "<p>Add your about text here. You can edit this in the theme editor: Customize → Home page → About (split) section.</p>",
+        "color_scheme": "scheme-1"
+      }
     }
   },
   "order": [
-    "hero_split"
+    "hero_split",
+    "about_split"
   ]
 }
