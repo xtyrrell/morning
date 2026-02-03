@@ -297,6 +297,15 @@
       }
     </script>
     <style>
+      /* Header bar: content starts flush below thin black divider - no gap */
+      #MainContent {
+        padding-top: 0;
+        margin-top: 0;
+      }
+      #MainContent > *:first-child {
+        margin-top: 0;
+        padding-top: 0;
+      }
       /* About is a separate view: on homepage, hide About section until user clicks About */
       body.template-index .about-split {
         display: none !important;
@@ -312,7 +321,6 @@
   </head>
 
   <body class="gradient template-{{ template.name }}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}">
-  <!-- EDITING FROM CURSOR -->
     <a class="skip-to-content-link button visually-hidden" href="#MainContent">
       {{ 'accessibility.skip_to_text' | t }}
     </a>

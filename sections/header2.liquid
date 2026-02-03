@@ -1,13 +1,18 @@
 <style>
+  /* Big by default (like reference image); scales down when .header2-wrapper--scrolled */
   .header2 {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
     justify-content: space-between;
-    padding: 2.5rem 5rem 0.5rem;
-
+    padding: 3.75rem 5rem 1.25rem;
     max-width: 1600px;
+    transition: padding 0.25s ease;
+  }
+
+  .header2-wrapper--scrolled .header2 {
+    padding: 1rem 5rem 0.5rem;
   }
 
   .header2__logo {
@@ -18,11 +23,32 @@
   .header2__logo-link {
     text-decoration: none;
     color: rgb(var(--color-foreground));
+    font-family: var(--font-heading-family);
+    font-weight: var(--font-heading-weight);
+    font-size: 2.75rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    transition: font-size 0.25s ease;
+  }
+
+  .header2-wrapper--scrolled .header2__logo-link {
+    font-size: 1.75rem;
+  }
+
+  .header2__logo-link .h2 {
+    font-size: inherit;
+    margin: 0;
   }
 
   .header2__logo-image {
     height: auto;
     max-width: 100%;
+    transition: transform 0.25s ease;
+  }
+
+  .header2-wrapper--scrolled .header2__logo-image {
+    transform: scale(0.82);
+    transform-origin: left center;
   }
 
   .header2__nav {
@@ -43,22 +69,34 @@
   .header2__menu-link {
     text-decoration: none;
     color: rgb(var(--color-foreground));
-    font-size: 1.6rem;
-    transition: color 0.2s ease;
+    font-family: var(--font-heading-family);
+    font-size: 1.5rem;
+    transition: color 0.2s ease, font-size 0.25s ease;
+  }
+
+  .header2-wrapper--scrolled .header2__menu-link {
+    font-size: 1.3rem;
   }
 
   .header2__menu-link:hover {
     color: rgb(var(--color-foreground));
   }
 
-  /* Sticky header */
+  /* Fixed header - stays visible when scrolling on shop, product, about pages */
   .header2-wrapper {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 1000;
+    left: 0;
+    right: 0;
+    z-index: 9999;
     background-color: rgb(var(--color-background));
-
+    /* Thin solid black line separating header from content - no gap below */
     border-bottom: 1px solid rgb(var(--color-foreground));
+    transition: box-shadow 0.25s ease;
+  }
+
+  .header2-wrapper--scrolled {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
   /* Remove Shopify's section group wrapper from layout flow */
@@ -66,14 +104,20 @@
     display: contents;
   }
 
-  /* Header spacer - only on desktop */
+  /* Spacer reserves space so content is not hidden under fixed header */
   .header-spacer {
     height: 0;
   }
 
   @media screen and (min-width: 750px) {
     .header-spacer {
-      height: 64px;
+      height: 0;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .header-spacer {
+      height: 0;
     }
   }
 </style>
@@ -130,6 +174,26 @@
     </nav>
   </header>
 </div>
+
+<script>
+  (function() {
+    var wrapper = document.querySelector('.header2-wrapper');
+    var spacer = document.querySelector('.header-spacer');
+    if (!wrapper || !spacer) return;
+    var threshold = 80;
+    function update() {
+      if (window.scrollY > threshold) {
+        wrapper.classList.add('header2-wrapper--scrolled');
+      } else {
+        wrapper.classList.remove('header2-wrapper--scrolled');
+      }
+      spacer.style.height = wrapper.offsetHeight + 'px';
+    }
+    update();
+    window.addEventListener('scroll', function() { requestAnimationFrame(update); }, { passive: true });
+    window.addEventListener('resize', function() { requestAnimationFrame(update); });
+  })();
+</script>
 
 {% schema %}
 {
