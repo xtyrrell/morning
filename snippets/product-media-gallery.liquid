@@ -12,7 +12,7 @@
 {% endcomment %}
 
 {%- liquid
-  if section.settings.hide_variants and variant_images.size == product.media.size
+  if variant_images.size == product.media.size
     assign single_media_visible = true
   endif
 
@@ -21,7 +21,7 @@
   endif
 
   assign media_count = product.media.size
-  if section.settings.hide_variants and media_count > 1 and variant_images.size > 0
+  if media_count > 1 and variant_images.size > 0
     assign media_count = media_count | minus: variant_images.size | plus: 1
   endif
 
@@ -88,7 +88,7 @@
       {%- for media in product.media -%}
         {% if media_position >= limit
           or media_position >= 1
-          and section.settings.hide_variants
+          and variant_images.size > 0
           and variant_images contains media.src
         %}
           {% continue %}
@@ -252,6 +252,9 @@
           </li>
         {%- endif -%}
         {%- for media in product.media -%}
+          {%- if variant_images.size > 0 and variant_images contains media.src -%}
+            {%- continue -%}
+          {%- endif -%}
           {%- unless media.id == product.selected_or_first_available_variant.featured_media.id -%}
             {%- liquid
               capture media_index

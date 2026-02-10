@@ -500,15 +500,12 @@ body.product-fullscreen-open .prada-nav-dots {
     overflow-x: hidden !important;
   }
 
-  /* Image a little bigger; fixed height so info fits in view without scrolling */
+  /* Image area: fixed height so info fits in view; don't break slider or image loading */
   .product__media-wrapper {
     height: 46vh;
     min-height: 38vh;
     max-height: 50vh;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background: #f5f5f5;
   }
 
@@ -516,23 +513,27 @@ body.product-fullscreen-open .prada-nav-dots {
   .product__media-wrapper .slider-mobile-gutter {
     height: 100%;
     width: 100%;
-    display: flex;
-    align-items: center;
   }
 
-  .product__media-wrapper .product__media-list {
+  /* One slide per view, full width, so images get correct layout and load */
+  .product__media-wrapper .product__media-list.slider--mobile {
+    display: flex;
     height: 100%;
     align-items: center;
   }
 
-  .product__media-wrapper .product__media-item {
+  .product__media-wrapper .product__media-list .product__media-item {
+    flex: 0 0 100%;
+    min-width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
   }
 
   .product__media-wrapper .product-media-container {
+    width: 100%;
     height: 100%;
     max-height: 46vh;
     display: flex;
@@ -540,13 +541,13 @@ body.product-fullscreen-open .prada-nav-dots {
     justify-content: center;
   }
 
+  /* Keep space for image to load; constrain max height */
   .product__media-wrapper .product-media-container .media {
-    height: 100%;
+    width: 100%;
+    min-height: 200px;
     max-height: 46vh;
-    padding-top: 0 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    position: relative;
   }
 
   .product__media-wrapper .media img,
@@ -556,6 +557,7 @@ body.product-fullscreen-open .prada-nav-dots {
     max-width: 100%;
     object-fit: contain;
     object-position: center;
+    display: block;
   }
 
   /* Compact info so title, description, price, sold out fit in view */
