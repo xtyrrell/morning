@@ -95,6 +95,62 @@
     transition: height 0.45s ease-in-out;
   }
 
+  /* Mobile: neat header with shrink, proper spacing between links */
+  @media screen and (max-width: 749px) {
+    .header2-wrapper {
+      background: rgb(var(--color-background));
+      border-bottom: 1px solid rgba(var(--color-foreground), 0.15);
+    }
+    .header2-wrapper.gradient {
+      background: rgb(var(--color-background));
+    }
+    .header2 {
+      height: 72px;
+      min-height: 56px;
+      padding: 0 1.25rem;
+      gap: 0;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      align-items: center;
+      transition: height 0.3s ease;
+    }
+    .header2--shrunk {
+      height: 56px;
+    }
+    .header2--shrunk .header2__logo-link {
+      font-size: 1.25rem;
+    }
+    .header2--shrunk .header2__logo-image {
+      transform: scale(0.85);
+      transform-origin: left center;
+    }
+    .header2__logo-link {
+      font-size: 1.5rem;
+      transition: font-size 0.3s ease;
+    }
+    .header2__nav {
+      gap: 0;
+    }
+    .header2__menu {
+      gap: 1.5rem;
+      justify-content: flex-end;
+    }
+    .header2__menu li {
+      margin: 0;
+    }
+    .header2__menu-link {
+      font-size: 1.15rem;
+      padding: 0.75rem 0;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .header-spacer {
+      height: 72px;
+      transition: height 0.3s ease;
+    }
+  }
+
 </style>
 
 <div class="header2-wrapper color-{{ section.settings.color_scheme }} gradient">
@@ -157,28 +213,38 @@
     var spacer = document.querySelector('.header-spacer');
     if (!wrapper || !header || !spacer) return;
 
-    var expandedHeight = 120;
-    /* 50% smaller than expanded */
-    var shrunkHeight = Math.round(expandedHeight * 0.5); // 60
-    spacer.style.height = expandedHeight + 'px';
+    function isMobile() {
+      return window.innerWidth <= 749;
+    }
+
+    function getHeights() {
+      if (isMobile()) return { expanded: 72, shrunk: 56 };
+      return { expanded: 120, shrunk: 60 };
+    }
 
     function onScroll() {
-      var shouldShrink = window.scrollY > 80;
+      var heights = getHeights();
+      var shouldShrink = window.scrollY > 60;
       if (shouldShrink) {
         header.classList.add('header2--shrunk');
-        header.style.height = shrunkHeight + 'px';
-        spacer.style.height = shrunkHeight + 'px';
+        header.style.height = heights.shrunk + 'px';
+        spacer.style.height = heights.shrunk + 'px';
       } else {
         header.classList.remove('header2--shrunk');
-        header.style.height = expandedHeight + 'px';
-        spacer.style.height = expandedHeight + 'px';
+        header.style.height = heights.expanded + 'px';
+        spacer.style.height = heights.expanded + 'px';
       }
     }
 
+    function setInitialHeight() {
+      var h = getHeights();
+      spacer.style.height = h.expanded + 'px';
+      header.style.height = h.expanded + 'px';
+    }
+    setInitialHeight();
     onScroll();
-    window.addEventListener('scroll', function() {
-      window.requestAnimationFrame(onScroll);
-    }, { passive: true });
+    window.addEventListener('scroll', function() { window.requestAnimationFrame(onScroll); }, { passive: true });
+    window.addEventListener('resize', function() { setInitialHeight(); onScroll(); });
   })();
 </script>
 

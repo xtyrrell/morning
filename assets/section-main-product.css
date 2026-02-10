@@ -365,7 +365,7 @@ product-info .page-width {
   background: #fff;
 }
 
-/* Product fullscreen (double-click) - same as about page */
+/* Product fullscreen (double-click) - same as about page: full image, top/bottom touch */
 .product-fullscreen {
   position: fixed;
   inset: 0;
@@ -380,17 +380,18 @@ product-info .page-width {
   display: flex;
 }
 
+/* Back button: top-left like desktop, always visible */
 .product-fullscreen__back {
   position: fixed;
   top: 1.5rem;
   left: 1.5rem;
-  z-index: 10000;
+  z-index: 10001;
   width: 3.2rem;
   height: 3.2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(0, 0, 0, 0.08);
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -399,7 +400,7 @@ product-info .page-width {
 }
 
 .product-fullscreen__back:hover {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.14);
 }
 
 .product-fullscreen__back svg {
@@ -440,6 +441,7 @@ product-info .page-width {
 
 .product-fullscreen__scroll {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -450,6 +452,7 @@ product-info .page-width {
   scroll-snap-type: y mandatory;
 }
 
+/* Each slide: full viewport height, image touches top and bottom (full image visible) */
 .product-fullscreen__item {
   height: 100vh;
   height: 100dvh;
@@ -469,11 +472,18 @@ product-info .page-width {
   height: 100%;
   width: auto;
   max-width: none;
+  min-height: 0;
   object-fit: contain;
   object-position: center;
   pointer-events: none;
   user-select: none;
   display: block;
+}
+
+/* Force full image visible: never crop or zoom (override any cover) */
+.product-fullscreen .product-fullscreen__item img {
+  object-fit: contain !important;
+  object-position: center !important;
 }
 
 body.product-fullscreen-open .prada-nav-dots {
@@ -490,33 +500,125 @@ body.product-fullscreen-open .prada-nav-dots {
     overflow-x: hidden !important;
   }
 
+  /* Image a little bigger; fixed height so info fits in view without scrolling */
+  .product__media-wrapper {
+    height: 46vh;
+    min-height: 38vh;
+    max-height: 50vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+  }
+
+  .product__media-wrapper slider-component,
+  .product__media-wrapper .slider-mobile-gutter {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .product__media-wrapper .product__media-list {
+    height: 100%;
+    align-items: center;
+  }
+
+  .product__media-wrapper .product__media-item {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product__media-wrapper .product-media-container {
+    height: 100%;
+    max-height: 46vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product__media-wrapper .product-media-container .media {
+    height: 100%;
+    max-height: 46vh;
+    padding-top: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product__media-wrapper .media img,
+  .product__media-wrapper .product__media img {
+    max-height: 46vh;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  /* Compact info so title, description, price, sold out fit in view */
+  .product__info-wrapper {
+    min-height: 0;
+  }
+
   .product__info-container {
-    padding: 2rem 1.25rem !important;
+    padding: 1.25rem 1.25rem 1.5rem !important;
+    margin: 0 !important;
+  }
+
+  .product__info-container>*+* {
+    margin: 0.75rem 0 !important;
+  }
+
+  .product__info-container .product-form,
+  .product__info-container .product__description,
+  .product__info-container .icon-with-text {
+    margin: 1rem 0 !important;
+  }
+
+  .product__info-container .product__title {
+    margin-bottom: 0.35rem !important;
   }
 
   .product__info-container .product__title h1 {
-    font-size: 1.6rem !important;
+    font-size: 1.5rem !important;
+    line-height: 1.25;
+  }
+
+  .product__info-container .product__text.caption-with-letter-spacing {
+    font-size: 0.95rem;
+    margin-top: 0;
+    margin-bottom: 0.4rem;
+  }
+
+  .product__info-container .product__description {
+    font-size: 1.05rem;
+    line-height: 1.45;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
   }
 
   .product__info-container .price {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
   }
 
-  /* Main-view dots: compact, safe area */
+  .product__info-container .price .price__container,
+  .product__info-container .price dl {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .product__info-container .product .price .badge {
+    margin-bottom: 0.25rem;
+  }
+
+  /* Main-view dots: hidden on mobile (Dawn slider handles navigation) */
   .prada-nav-dots {
-    left: max(1rem, env(safe-area-inset-left));
-    bottom: max(1rem, env(safe-area-inset-bottom));
-    gap: 0.6rem;
-  }
-
-  .prada-nav-dots span {
-    width: 6px;
-    height: 6px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 19px;
-    margin: -19px;
-    box-sizing: content-box;
+    display: none !important;
   }
 
   /* Product fullscreen: touch-friendly */
@@ -536,14 +638,20 @@ body.product-fullscreen-open .prada-nav-dots {
 
   .product-fullscreen__dots {
     left: max(1rem, env(safe-area-inset-left));
+    gap: 0.4rem;
   }
 
   .product-fullscreen__dots span {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 21px;
-    margin: -21px;
+    width: 4px;
+    height: 4px;
+    padding: 20px;
+    margin: -20px;
     box-sizing: content-box;
+    background-clip: content-box;
+  }
+
+  .product-fullscreen__dots span.active {
+    transform: scale(1.2);
   }
 }
 

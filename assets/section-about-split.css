@@ -264,17 +264,16 @@
   .about-split .prada-nav-dots {
     left: max(1rem, env(safe-area-inset-left));
     bottom: max(1rem, env(safe-area-inset-bottom));
-    gap: 0.6rem;
+    gap: 0.35rem;
   }
 
   .about-split .prada-nav-dots span {
-    width: 6px;
-    height: 6px;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 19px;
-    margin: -19px;
+    width: 4px;
+    height: 4px;
+    padding: 20px;
+    margin: -20px;
     box-sizing: content-box;
+    background-clip: content-box;
   }
 
   /* Fullscreen: touch-friendly back button and dots */
@@ -294,16 +293,20 @@
 
   .about-split__fullscreen-dots {
     left: max(1rem, env(safe-area-inset-left));
+    gap: 0.4rem;
   }
 
   .about-split__fullscreen-dots span {
-    width: 0.5rem;
-    height: 0.5rem;
-    min-width: 44px;
-    min-height: 44px;
-    padding: 21px;
-    margin: -21px;
+    width: 4px;
+    height: 4px;
+    padding: 20px;
+    margin: -20px;
     box-sizing: content-box;
+    background-clip: content-box;
+  }
+
+  .about-split__fullscreen-dots span.active {
+    transform: scale(1.2);
   }
 
   .about-split__fullscreen-item img {

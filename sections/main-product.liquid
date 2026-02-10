@@ -704,7 +704,12 @@
       var mediaWrapper = document.querySelector('#MainProduct-' + sectionId + ' .product__media-wrapper');
       if (!fullscreen || !scrollEl || !mediaWrapper) return;
 
-      var mediaItems = Array.from(mediaWrapper.querySelectorAll('.product__media-item'));
+      var allMediaItems = Array.from(mediaWrapper.querySelectorAll('.product__media-item'));
+      /* Filter to only visible items (skip hidden variant images on mobile) */
+      var mediaItems = allMediaItems.filter(function(item) {
+        var style = window.getComputedStyle(item);
+        return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+      });
       var imageList = [];
       var itemsWithSlides = [];
       mediaItems.forEach(function(item) {

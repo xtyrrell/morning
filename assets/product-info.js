@@ -32,6 +32,9 @@ if (!customElements.get('product-info')) {
       }
 
   initPradaScrollBehavior() {
+    /* Only run on desktop (desktop has the vertical image stack + dots) */
+    if (window.innerWidth < 750) return;
+
     const mediaWrapper = this.querySelector('.product__media-wrapper');
     const infoWrapper = this.querySelector('.product__info-wrapper');
     if (!mediaWrapper || !infoWrapper) return;
