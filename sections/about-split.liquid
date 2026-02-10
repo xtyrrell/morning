@@ -28,7 +28,35 @@
               height="{{ section.settings.image.height }}"
             >
           </div>
+          <div class="about-split__media-item">
+            <img
+              src="{{ 'DSCF4523.JPG' | asset_url }}"
+              alt="{{ page.title | default: 'About' | escape }}"
+              loading="lazy"
+              width="1200"
+              height="800"
+            >
+          </div>
+          <div class="about-split__media-item">
+            <img
+              src="{{ '0013_10.jpeg' | asset_url }}"
+              alt="{{ page.title | default: 'About' | escape }}"
+              loading="lazy"
+              width="1200"
+              height="800"
+            >
+          </div>
+          <div class="about-split__media-item">
+            <img
+              src="{{ 'IMG_8203-copy.jpg' | asset_url }}"
+              alt="{{ page.title | default: 'About' | escape }}"
+              loading="lazy"
+              width="1200"
+              height="800"
+            >
+          </div>
         </div>
+        <div class="prada-nav-dots about-split__dots" id="about-split-dots-{{ section.id }}" aria-hidden="true"></div>
       {%- endif -%}
     </div>
     <div class="about-split__content-wrapper">
@@ -43,6 +71,202 @@
     </div>
   </div>
 </div>
+
+<div class="about-split__fullscreen" id="about-split-fullscreen-{{ section.id }}" role="button" tabindex="-1" aria-label="Close">
+  <button type="button" class="about-split__fullscreen-back" id="about-split-fullscreen-back-{{ section.id }}" aria-label="Back">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </button>
+  <div class="about-split__fullscreen-scroll" id="about-split-fullscreen-scroll-{{ section.id }}">
+    <!-- Filled by JS from about section images -->
+  </div>
+  <div class="prada-nav-dots about-split__fullscreen-dots" id="about-split-fullscreen-dots-{{ section.id }}" aria-hidden="true"></div>
+</div>
+
+<script>
+  (function() {
+    var sectionId = '{{ section.id }}';
+    var fullscreen = document.getElementById('about-split-fullscreen-' + sectionId);
+    var scrollEl = document.getElementById('about-split-fullscreen-scroll-' + sectionId);
+    var container = document.getElementById('about');
+    if (!fullscreen || !scrollEl || !container) return;
+
+    var images = container.querySelectorAll('.about-split__media-item img');
+    var mediaItems = container.querySelectorAll('.about-split__media-item');
+    var imageList = [];
+
+    /* Dots in main view (not fullscreen) - fixed like product, stay visible when section in view */
+    var mainDotsEl = document.getElementById('about-split-dots-' + sectionId);
+    var mediaWrapperAbout = container.querySelector('.about-split__media-wrapper');
+    if (mainDotsEl && mediaItems.length > 1 && mediaWrapperAbout) {
+      for (var d = 0; d < mediaItems.length; d++) {
+        var s = document.createElement('span');
+        if (d === 0) s.classList.add('active');
+        s.setAttribute('role', 'button');
+        s.setAttribute('aria-label', 'Go to image ' + (d + 1));
+        s.dataset.index = d;
+        mainDotsEl.appendChild(s);
+      }
+      mainDotsEl.querySelectorAll('span').forEach(function(span, idx) {
+        span.addEventListener('click', function(e) {
+          e.preventDefault();
+          mediaItems[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      });
+      var setMainActive = function(index) {
+        mainDotsEl.querySelectorAll('span').forEach(function(span, i) {
+          span.classList.toggle('active', i === index);
+        });
+      };
+      /* Keep dots fixed at bottom-left, but constrain so they don't sit below the image column (like product page) */
+      var defaultBottomRem = 32;
+      var updateDotsPosition = function() {
+        var rect = mediaWrapperAbout.getBoundingClientRect();
+        var viewportBottom = window.innerHeight;
+        var sectionBottom = rect.bottom;
+        var bottomIfConstrained = viewportBottom - sectionBottom + defaultBottomRem;
+        mainDotsEl.style.bottom = Math.max(defaultBottomRem, bottomIfConstrained) + 'px';
+        mainDotsEl.style.visibility = (rect.bottom < 0 || rect.top > viewportBottom) ? 'hidden' : 'visible';
+      };
+      updateDotsPosition();
+      window.addEventListener('scroll', updateDotsPosition, { passive: true });
+      window.addEventListener('resize', updateDotsPosition);
+      var observer = new IntersectionObserver(
+        function(entries) {
+          entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            var idx = Array.prototype.indexOf.call(mediaItems, entry.target);
+            if (idx >= 0) setMainActive(idx);
+          });
+        },
+        { root: null, rootMargin: '-30% 0px -30% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] }
+      );
+      mediaItems.forEach(function(item) { observer.observe(item); });
+      var firstVisible = 0;
+      for (var k = 0; k < mediaItems.length; k++) {
+        var r = mediaItems[k].getBoundingClientRect();
+        if (r.top < window.innerHeight * 0.6) firstVisible = k;
+      }
+      setMainActive(firstVisible);
+    }
+
+    images.forEach(function(img) {
+      var item = document.createElement('div');
+      item.className = 'about-split__fullscreen-item';
+      var clone = document.createElement('img');
+      clone.src = img.currentSrc || img.getAttribute('src');
+      if (img.srcset) clone.srcset = img.srcset;
+      if (img.sizes) clone.sizes = img.sizes;
+      clone.alt = img.alt || '';
+      item.appendChild(clone);
+      scrollEl.appendChild(item);
+      imageList.push({ item: item, img: img });
+    });
+
+    var dotsEl = document.getElementById('about-split-fullscreen-dots-' + sectionId);
+    if (dotsEl && imageList.length > 1) {
+      var dotsFragment = document.createDocumentFragment();
+      for (var i = 0; i < imageList.length; i++) {
+        var dot = document.createElement('span');
+        if (i === 0) dot.classList.add('active');
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('aria-label', 'Go to image ' + (i + 1));
+        dot.dataset.index = i;
+        dotsFragment.appendChild(dot);
+      }
+      dotsEl.appendChild(dotsFragment);
+      dotsEl.querySelectorAll('span').forEach(function(dot) {
+        dot.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var idx = parseInt(dot.dataset.index, 10);
+          scrollToSlide(idx);
+          updateDots(idx);
+          stopAutoScroll();
+          if (scrollEl._scrollTimeout) clearTimeout(scrollEl._scrollTimeout);
+          scrollEl._scrollTimeout = setTimeout(function() { startAutoScroll(); }, 3000);
+        });
+      });
+    }
+
+    function updateDots(activeIndex) {
+      if (!dotsEl) return;
+      dotsEl.querySelectorAll('span').forEach(function(dot, i) {
+        dot.classList.toggle('active', i === activeIndex);
+      });
+    }
+
+    var autoScrollTimer = null;
+    var autoScrollDelay = 5000;
+
+    function scrollToSlide(index) {
+      index = Math.max(0, Math.min(index, imageList.length - 1));
+      var top = index * scrollEl.clientHeight;
+      scrollEl.scrollTo({ top: top, behavior: 'smooth' });
+      updateDots(index);
+    }
+
+    function getCurrentSlideIndex() {
+      var scrollTop = scrollEl.scrollTop;
+      var index = Math.round(scrollTop / scrollEl.clientHeight);
+      return Math.min(index, imageList.length - 1);
+    }
+
+    function startAutoScroll() {
+      stopAutoScroll();
+      autoScrollTimer = setInterval(function() {
+        if (!fullscreen.classList.contains('is-open')) return;
+        var current = getCurrentSlideIndex();
+        var next = (current + 1) % imageList.length;
+        scrollToSlide(next);
+      }, autoScrollDelay);
+    }
+
+    function stopAutoScroll() {
+      if (autoScrollTimer) {
+        clearInterval(autoScrollTimer);
+        autoScrollTimer = null;
+      }
+    }
+
+    images.forEach(function(img, index) {
+      img.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        fullscreen.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+        scrollToSlide(index);
+        startAutoScroll();
+      });
+    });
+
+    scrollEl.addEventListener('scroll', function() {
+      if (!fullscreen.classList.contains('is-open')) return;
+      updateDots(getCurrentSlideIndex());
+      stopAutoScroll();
+      if (scrollEl._scrollTimeout) clearTimeout(scrollEl._scrollTimeout);
+      scrollEl._scrollTimeout = setTimeout(function() { startAutoScroll(); }, 3000);
+    });
+
+    function closeFullscreen() {
+      stopAutoScroll();
+      fullscreen.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+
+    fullscreen.addEventListener('click', function(e) {
+      if (e.target === fullscreen) closeFullscreen();
+    });
+    var backBtn = document.getElementById('about-split-fullscreen-back-' + sectionId);
+    if (backBtn) backBtn.addEventListener('click', function(e) { e.stopPropagation(); closeFullscreen(); });
+    scrollEl.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && fullscreen.classList.contains('is-open')) closeFullscreen();
+    });
+  })();
+</script>
 
 {% schema %}
 {

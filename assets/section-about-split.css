@@ -1,7 +1,7 @@
-/* About split - product-style layout: image left (scrollable), content right (fixed) */
+/* About split - product-style layout: images left (page scroll), content right (sticky) */
 
 .about-split {
-  min-height: 100vh;
+  width: 100%;
 }
 
 .about-split__grid {
@@ -11,23 +11,17 @@
 
 @media screen and (min-width: 750px) {
   .about-split__grid {
+    display: flex;
     flex-direction: row;
-    min-height: 100vh;
+    align-items: flex-start;
   }
 
+  /* LEFT: Images - 50%, flows naturally with page scroll */
   .about-split__media-wrapper {
+    position: relative;
     width: 50%;
     flex: 0 0 50%;
-    height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
     background: #f5f5f5;
-    scrollbar-width: none;
-  }
-
-  .about-split__media-wrapper::-webkit-scrollbar {
-    width: 0;
-    height: 0;
   }
 
   .about-split__media-list {
@@ -50,9 +44,13 @@
     vertical-align: top;
   }
 
+  /* RIGHT: Content - 50%, sticky so it stays while you scroll the page */
   .about-split__content-wrapper {
     width: 50%;
     flex: 0 0 50%;
+    height: 100vh;
+    position: sticky;
+    top: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -60,8 +58,6 @@
   }
 
   .about-split__content {
-    position: sticky;
-    top: 20vh;
     padding: 3rem 4rem;
     max-width: 480px;
     text-align: left;
@@ -79,6 +75,159 @@
   .about-split__text p {
     margin-bottom: 1rem;
   }
+}
+
+/* Fullscreen overlay for double-click */
+.about-split__fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #fff;
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.about-split__fullscreen-back {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10000;
+  width: 3.2rem;
+  height: 3.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: rgb(var(--color-foreground));
+  transition: background 0.2s ease;
+}
+
+.about-split__fullscreen-back:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.about-split__fullscreen-back svg {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.about-split__fullscreen.is-open {
+  display: flex;
+}
+
+/* Dots indicator - same as product view (prada-nav-dots) */
+.about-split__fullscreen .prada-nav-dots {
+  position: fixed;
+  left: 2rem;
+  bottom: 2rem;
+  top: auto;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 10000;
+}
+
+.about-split__fullscreen .prada-nav-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.about-split__fullscreen .prada-nav-dots span.active {
+  background: #000;
+}
+
+.about-split__fullscreen .prada-nav-dots--light span {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.about-split__fullscreen .prada-nav-dots--light span.active {
+  background: #fff;
+}
+
+/* Dots in main about view (not fullscreen) - fixed like product, constrained by JS */
+.about-split__dots {
+  position: fixed;
+  left: 2rem;
+  bottom: 2rem;
+  top: auto;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 100;
+}
+
+.about-split__dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.about-split__dots span.active {
+  background: #000;
+}
+
+@media screen and (max-width: 749px) {
+  .about-split__dots {
+    left: 1rem;
+    bottom: 1rem;
+  }
+}
+
+.about-split__fullscreen-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0;
+  cursor: default;
+  touch-action: pan-y;
+  scroll-snap-type: y mandatory;
+}
+
+.about-split__fullscreen-scroll:active {
+  cursor: grab;
+}
+
+.about-split__fullscreen-item {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.about-split__fullscreen-item img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  display: block;
+}
+
+.about-split__media-item {
+  cursor: pointer;
 }
 
 @media screen and (max-width: 749px) {

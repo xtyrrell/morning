@@ -1,18 +1,15 @@
 <style>
-  /* Big by default (like reference image); scales down when .header2-wrapper--scrolled */
+  /* Single, consistent expanded size + single consistent shrunk size across ALL pages */
   .header2 {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
     justify-content: space-between;
-    padding: 3.75rem 5rem 1.25rem;
+    height: 120px; /* expanded */
+    padding: 0 5rem;
     max-width: 1600px;
-    transition: padding 0.25s ease;
-  }
-
-  .header2-wrapper--scrolled .header2 {
-    padding: 1rem 5rem 0.5rem;
+    transition: height 0.45s ease-in-out;
   }
 
   .header2__logo {
@@ -31,10 +28,6 @@
     transition: font-size 0.25s ease;
   }
 
-  .header2-wrapper--scrolled .header2__logo-link {
-    font-size: 1.75rem;
-  }
-
   .header2__logo-link .h2 {
     font-size: inherit;
     margin: 0;
@@ -46,7 +39,7 @@
     transition: transform 0.25s ease;
   }
 
-  .header2-wrapper--scrolled .header2__logo-image {
+  .header2--shrunk .header2__logo-image {
     transform: scale(0.82);
     transform-origin: left center;
   }
@@ -74,10 +67,6 @@
     transition: color 0.2s ease, font-size 0.25s ease;
   }
 
-  .header2-wrapper--scrolled .header2__menu-link {
-    font-size: 1.3rem;
-  }
-
   .header2__menu-link:hover {
     color: rgb(var(--color-foreground));
   }
@@ -95,10 +84,6 @@
     transition: box-shadow 0.25s ease;
   }
 
-  .header2-wrapper--scrolled {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  }
-
   /* Remove Shopify's section group wrapper from layout flow */
   .shopify-section-group-header-group {
     display: contents;
@@ -106,20 +91,10 @@
 
   /* Spacer reserves space so content is not hidden under fixed header */
   .header-spacer {
-    height: 0;
+    height: 120px;
+    transition: height 0.45s ease-in-out;
   }
 
-  @media screen and (min-width: 750px) {
-    .header-spacer {
-      height: 0;
-    }
-  }
-
-  @media screen and (max-width: 749px) {
-    .header-spacer {
-      height: 0;
-    }
-  }
 </style>
 
 <div class="header2-wrapper color-{{ section.settings.color_scheme }} gradient">
@@ -178,20 +153,32 @@
 <script>
   (function() {
     var wrapper = document.querySelector('.header2-wrapper');
+    var header = wrapper && wrapper.querySelector('.header2');
     var spacer = document.querySelector('.header-spacer');
-    if (!wrapper || !spacer) return;
-    var threshold = 80;
-    function update() {
-      if (window.scrollY > threshold) {
-        wrapper.classList.add('header2-wrapper--scrolled');
+    if (!wrapper || !header || !spacer) return;
+
+    var expandedHeight = 120;
+    /* 50% smaller than expanded */
+    var shrunkHeight = Math.round(expandedHeight * 0.5); // 60
+    spacer.style.height = expandedHeight + 'px';
+
+    function onScroll() {
+      var shouldShrink = window.scrollY > 80;
+      if (shouldShrink) {
+        header.classList.add('header2--shrunk');
+        header.style.height = shrunkHeight + 'px';
+        spacer.style.height = shrunkHeight + 'px';
       } else {
-        wrapper.classList.remove('header2-wrapper--scrolled');
+        header.classList.remove('header2--shrunk');
+        header.style.height = expandedHeight + 'px';
+        spacer.style.height = expandedHeight + 'px';
       }
-      spacer.style.height = wrapper.offsetHeight + 'px';
     }
-    update();
-    window.addEventListener('scroll', function() { requestAnimationFrame(update); }, { passive: true });
-    window.addEventListener('resize', function() { requestAnimationFrame(update); });
+
+    onScroll();
+    window.addEventListener('scroll', function() {
+      window.requestAnimationFrame(onScroll);
+    }, { passive: true });
   })();
 </script>
 

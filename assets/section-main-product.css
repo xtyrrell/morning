@@ -24,6 +24,27 @@ product-info .page-width {
   margin: 0 auto;
 }
 
+/* Inline product subscribe block (sits directly under product section) */
+.product-subscribe {
+  margin: 0;
+  padding: 0 5rem 5rem;
+}
+
+.product-subscribe__divider {
+  border-top: 1px solid rgba(var(--color-foreground), 0.12);
+  margin: 0 0 3rem;
+}
+
+.product-subscribe__inner {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.product-subscribe__heading {
+  margin-bottom: 2rem;
+}
+
 /* =====================================================
    DESKTOP: 50/50 SPLIT - PRADA STYLE
    ===================================================== */
@@ -342,6 +363,110 @@ product-info .page-width {
 
 .prada-nav-dots--light span.active {
   background: #fff;
+}
+
+/* Product fullscreen overlay (double-click gallery) - same as about */
+.product__fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #fff;
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.product__fullscreen.is-open {
+  display: flex;
+}
+
+.product__fullscreen-back {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10000;
+  width: 3.2rem;
+  height: 3.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.06);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: rgb(var(--color-foreground));
+  transition: background 0.2s ease;
+}
+
+.product__fullscreen-back:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.product__fullscreen-back svg {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.product__fullscreen .prada-nav-dots {
+  position: fixed;
+  left: 2rem;
+  bottom: 2rem;
+  top: auto;
+  transform: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 10000;
+}
+
+.product__fullscreen .prada-nav-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.product__fullscreen .prada-nav-dots span.active {
+  background: #000;
+}
+
+.product__fullscreen-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0;
+  cursor: default;
+  touch-action: pan-y;
+  scroll-snap-type: y mandatory;
+}
+
+.product__fullscreen-item {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.product__fullscreen-item img {
+  width: auto;
+  height: 100%;
+  min-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  display: block;
 }
 
 /* Dynamic checkout */

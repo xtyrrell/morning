@@ -20,6 +20,7 @@ if (!customElements.get('product-info')) {
       connectedCallback() {
         this.initializeProductSwapUtility();
         this.initPradaScrollBehavior();
+        this.alignNewsletterWithMedia();
 
         this.onVariantChangeUnsubscriber = subscribe(
           PUB_SUB_EVENTS.optionValueSelectionChange,
@@ -157,6 +158,32 @@ if (!customElements.get('product-info')) {
       dotsContainer.remove();
     };
   }
+
+      alignNewsletterWithMedia() {
+        // Only matters on product pages where a standalone newsletter section exists below the product
+        const mediaWrapper = this.querySelector('.product__media-wrapper');
+        if (!mediaWrapper) return;
+
+        // Outer newsletter section on the page (not the footer one)
+        const newsletterSection = document.querySelector('.shopify-section .newsletter');
+        if (!newsletterSection) return;
+
+        const adjust = () => {
+          const mediaRect = mediaWrapper.getBoundingClientRect();
+          const newsletterRect = newsletterSection.getBoundingClientRect();
+
+          // We want the top of the newsletter section to sit exactly at the bottom of the media column
+          const delta = newsletterRect.top - mediaRect.bottom;
+          if (Math.abs(delta) < 1) return;
+
+          const currentMarginTop = parseFloat(getComputedStyle(newsletterSection).marginTop || '0');
+          newsletterSection.style.marginTop = `${currentMarginTop - delta}px`;
+        };
+
+        // Run on load and when layout changes size
+        adjust();
+        window.addEventListener('resize', adjust);
+      }
 
       addPreProcessCallback(callback) {
         this.preProcessHtmlCallbacks.push(callback);

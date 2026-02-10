@@ -306,6 +306,20 @@
         margin-top: 0;
         padding-top: 0;
       }
+      /* Ensure the very first section's internal padding doesn't add extra height under header */
+      #MainContent > *:first-child [class*="section-"][class*="-padding"] {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+      /* Ensure the very last section sits flush to the footer line – no extra bottom gap */
+      #MainContent > *:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      #MainContent > *:last-child [class*="section-"][class*="-padding"] {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
       /* About is a separate view: on homepage, hide About section until user clicks About */
       body.template-index .about-split {
         display: none !important;

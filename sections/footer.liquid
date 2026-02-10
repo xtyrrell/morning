@@ -159,6 +159,7 @@
           </div>
         {%- endif -%}
 
+        {% if template.name != 'product' %}
         <div
           class="footer-block--newsletter{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
           {% if settings.animations_reveal_on_scroll %}
@@ -246,6 +247,7 @@
             {%- render 'social-icons', class: 'footer__list-social' -%}
           {%- endif -%}
         </div>
+        {% endif %}
       </div>
     {%- endunless -%}
   {%- endif -%}
