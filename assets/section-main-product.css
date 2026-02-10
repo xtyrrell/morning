@@ -365,8 +365,8 @@ product-info .page-width {
   background: #fff;
 }
 
-/* Product fullscreen overlay (double-click gallery) - same as about */
-.product__fullscreen {
+/* Product fullscreen (double-click) - same as about page */
+.product-fullscreen {
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -376,11 +376,11 @@ product-info .page-width {
   cursor: pointer;
 }
 
-.product__fullscreen.is-open {
+.product-fullscreen.is-open {
   display: flex;
 }
 
-.product__fullscreen-back {
+.product-fullscreen__back {
   position: fixed;
   top: 1.5rem;
   left: 1.5rem;
@@ -398,40 +398,47 @@ product-info .page-width {
   transition: background 0.2s ease;
 }
 
-.product__fullscreen-back:hover {
+.product-fullscreen__back:hover {
   background: rgba(0, 0, 0, 0.12);
 }
 
-.product__fullscreen-back svg {
+.product-fullscreen__back svg {
   width: 1.6rem;
   height: 1.6rem;
 }
 
-.product__fullscreen .prada-nav-dots {
+.product-fullscreen__dots {
   position: fixed;
-  left: 2rem;
-  bottom: 2rem;
-  top: auto;
-  transform: none;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10000;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  z-index: 10000;
+  gap: 0.75rem;
+  pointer-events: none;
 }
 
-.product__fullscreen .prada-nav-dots span {
-  width: 8px;
-  height: 8px;
+.product-fullscreen__dots span {
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.product__fullscreen .prada-nav-dots span.active {
-  background: #000;
+.product-fullscreen__dots span:hover {
+  background: rgba(0, 0, 0, 0.4);
 }
 
-.product__fullscreen-scroll {
+.product-fullscreen__dots span.active {
+  background: rgb(var(--color-foreground));
+  transform: scale(1.25);
+}
+
+.product-fullscreen__scroll {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
@@ -443,7 +450,7 @@ product-info .page-width {
   scroll-snap-type: y mandatory;
 }
 
-.product__fullscreen-item {
+.product-fullscreen__item {
   height: 100vh;
   height: 100dvh;
   min-height: 100vh;
@@ -451,22 +458,93 @@ product-info .page-width {
   scroll-snap-align: start;
   scroll-snap-stop: always;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
-.product__fullscreen-item img {
-  width: auto;
+.product-fullscreen__item img {
   height: 100%;
-  min-height: 100%;
+  width: auto;
+  max-width: none;
   object-fit: contain;
   object-position: center;
   pointer-events: none;
   user-select: none;
   display: block;
+}
+
+body.product-fullscreen-open .prada-nav-dots {
+  visibility: hidden !important;
+}
+
+/* =====================================================
+   MOBILE: fit neatly, no overflow, touch-friendly
+   ===================================================== */
+@media screen and (max-width: 749px) {
+  product-info,
+  product-info .page-width,
+  .product.grid {
+    overflow-x: hidden !important;
+  }
+
+  .product__info-container {
+    padding: 2rem 1.25rem !important;
+  }
+
+  .product__info-container .product__title h1 {
+    font-size: 1.6rem !important;
+  }
+
+  .product__info-container .price {
+    font-size: 1.25rem;
+  }
+
+  /* Main-view dots: compact, safe area */
+  .prada-nav-dots {
+    left: max(1rem, env(safe-area-inset-left));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    gap: 0.6rem;
+  }
+
+  .prada-nav-dots span {
+    width: 6px;
+    height: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 19px;
+    margin: -19px;
+    box-sizing: content-box;
+  }
+
+  /* Product fullscreen: touch-friendly */
+  .product-fullscreen__back {
+    top: max(1rem, env(safe-area-inset-top));
+    left: max(1rem, env(safe-area-inset-left));
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .product-fullscreen__back svg {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .product-fullscreen__dots {
+    left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .product-fullscreen__dots span {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 21px;
+    margin: -21px;
+    box-sizing: content-box;
+  }
 }
 
 /* Dynamic checkout */

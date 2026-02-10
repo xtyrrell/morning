@@ -12,10 +12,22 @@
     "hero_split": {
       "type": "hero-split",
       "settings": {
-        "image_left": "shopify://shop_images/IMG_1328_copy_2.jpg",
+        "image_left": "shopify://shop_images/Screenshot_2026-02-10_at_15.51.45.png",
         "link_left": "",
         "link_left_label": "View collection",
-        "image_right": "shopify://shop_images/B016522B-D335-43BF-8F22-5CC986817E2A.jpg",
+        "image_right": "shopify://shop_images/Screenshot_2026-02-10_at_15.51.33.png",
+        "link_right": "",
+        "link_right_label": "View collection",
+        "mobile_layout": "stacked"
+      }
+    },
+    "hero_split_Fb8WaP": {
+      "type": "hero-split",
+      "settings": {
+        "image_left": "shopify://shop_images/Screenshot_2026-02-10_at_16.57.06.png",
+        "link_left": "",
+        "link_left_label": "View collection",
+        "image_right": "shopify://shop_images/Screenshot_2026-02-10_at_15.54.59_c90115cf-0471-4dc8-80e2-0582043dbf9f.png",
         "link_right": "",
         "link_right_label": "View collection",
         "mobile_layout": "stacked"
@@ -25,14 +37,15 @@
       "type": "about-split",
       "settings": {
         "image": "shopify://shop_images/B016522B-D335-43BF-8F22-5CC986817E2A.jpg",
-        "heading": "About",
-        "text": "<p>Add your about text here. You can edit this in the theme editor: Customize → Home page → About (split) section.</p>",
+        "heading": "",
+        "text": "<p>Jade Paton is a South African artist working primarily in ceramics. Her practice draws inspiration from ancient vessels, natural forms, architecture, and contemporary design.</p><p>Through a hand-building process, she creates sculptural pieces that merge traditional references with a modern sensibility.</p><p>Her work often contrasts raw, textured surfaces with refined lines or bold colour, exploring the tension between the elemental and the refined. Paton is particularly interested in the domestic object—its symbolism, function, and emotional weight.</p>",
         "color_scheme": "scheme-1"
       }
     }
   },
   "order": [
     "hero_split",
+    "hero_split_Fb8WaP",
     "about_split"
   ]
 }

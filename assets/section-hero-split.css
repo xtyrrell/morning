@@ -29,7 +29,6 @@
   width: 100%;
   height: auto;
   object-fit: cover;
-  object-position: center;
 }
 
 .hero-split__link {
@@ -71,41 +70,13 @@
   }
 }
 
-/* Desktop - same height for both sides, left image crops to match right */
+/* Desktop - always side by side */
 @media screen and (min-width: 750px) {
   .hero-split__container {
     flex-direction: row;
-    align-items: stretch;
-    aspect-ratio: 2 / 1;
   }
 
   .hero-split__media {
     width: 50%;
-    position: relative;
   }
-
-  .hero-split__media img.hero-split__image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-}
-
-/* Full-width image underneath the two hero panels (homepage) */
-.hero-split__fullwidth {
-  width: 100%;
-  overflow: hidden;
-}
-
-.hero-split__fullwidth-image {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  object-position: center;
-  vertical-align: top;
 }

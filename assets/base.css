@@ -3589,3 +3589,10 @@ details-disclosure>details {
     transform: translateX(100%) scaleX(0);
   }
 }
+
+/* Mobile: prevent horizontal scroll, content fits neatly */
+@media screen and (max-width: 749px) {
+  body {
+    overflow-x: hidden;
+  }
+}

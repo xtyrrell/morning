@@ -10,36 +10,19 @@
 <div id="about" class="about-split section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
   <div class="about-split__grid">
     <div class="about-split__media-wrapper">
-      {%- if section.settings.image != blank -%}
         <div class="about-split__media-list">
           <div class="about-split__media-item">
             <img
-              src="{{ section.settings.image | image_url: width: 1200 }}"
-              srcset="
-                {{ section.settings.image | image_url: width: 600 }} 600w,
-                {{ section.settings.image | image_url: width: 900 }} 900w,
-                {{ section.settings.image | image_url: width: 1200 }} 1200w,
-                {{ section.settings.image | image_url: width: 1600 }} 1600w
-              "
-              sizes="50vw"
-              alt="{{ section.settings.image.alt | default: page.title | escape }}"
+              src="{{ '_DSC6264-1.jpg' | asset_url }}"
+              alt="{{ page.title | default: section.settings.heading | default: 'About' | escape }}"
               loading="eager"
-              width="{{ section.settings.image.width }}"
-              height="{{ section.settings.image.height }}"
-            >
-          </div>
-          <div class="about-split__media-item">
-            <img
-              src="{{ 'DSCF4523.JPG' | asset_url }}"
-              alt="{{ page.title | default: 'About' | escape }}"
-              loading="lazy"
               width="1200"
               height="800"
             >
           </div>
           <div class="about-split__media-item">
             <img
-              src="{{ '0013_10.jpeg' | asset_url }}"
+              src="{{ '_DSC9238.jpg' | asset_url }}"
               alt="{{ page.title | default: 'About' | escape }}"
               loading="lazy"
               width="1200"
@@ -56,8 +39,6 @@
             >
           </div>
         </div>
-        <div class="prada-nav-dots about-split__dots" id="about-split-dots-{{ section.id }}" aria-hidden="true"></div>
-      {%- endif -%}
     </div>
     <div class="about-split__content-wrapper">
       <div class="about-split__content">
@@ -78,10 +59,12 @@
       <path d="M19 12H5M12 19l-7-7 7-7"/>
     </svg>
   </button>
+  <div class="about-split__fullscreen-dots" id="about-split-fullscreen-dots-{{ section.id }}" aria-hidden="true">
+    <!-- Filled by JS: one dot per image -->
+  </div>
   <div class="about-split__fullscreen-scroll" id="about-split-fullscreen-scroll-{{ section.id }}">
     <!-- Filled by JS from about section images -->
   </div>
-  <div class="prada-nav-dots about-split__fullscreen-dots" id="about-split-fullscreen-dots-{{ section.id }}" aria-hidden="true"></div>
 </div>
 
 <script>
@@ -92,64 +75,10 @@
     var container = document.getElementById('about');
     if (!fullscreen || !scrollEl || !container) return;
 
+    var mediaWrapper = container.querySelector('.about-split__media-wrapper');
+    var mediaItems = Array.from(container.querySelectorAll('.about-split__media-item'));
     var images = container.querySelectorAll('.about-split__media-item img');
-    var mediaItems = container.querySelectorAll('.about-split__media-item');
     var imageList = [];
-
-    /* Dots in main view (not fullscreen) - fixed like product, stay visible when section in view */
-    var mainDotsEl = document.getElementById('about-split-dots-' + sectionId);
-    var mediaWrapperAbout = container.querySelector('.about-split__media-wrapper');
-    if (mainDotsEl && mediaItems.length > 1 && mediaWrapperAbout) {
-      for (var d = 0; d < mediaItems.length; d++) {
-        var s = document.createElement('span');
-        if (d === 0) s.classList.add('active');
-        s.setAttribute('role', 'button');
-        s.setAttribute('aria-label', 'Go to image ' + (d + 1));
-        s.dataset.index = d;
-        mainDotsEl.appendChild(s);
-      }
-      mainDotsEl.querySelectorAll('span').forEach(function(span, idx) {
-        span.addEventListener('click', function(e) {
-          e.preventDefault();
-          mediaItems[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-      });
-      var setMainActive = function(index) {
-        mainDotsEl.querySelectorAll('span').forEach(function(span, i) {
-          span.classList.toggle('active', i === index);
-        });
-      };
-      /* Keep dots fixed at bottom-left, but constrain so they don't sit below the image column (like product page) */
-      var defaultBottomRem = 32;
-      var updateDotsPosition = function() {
-        var rect = mediaWrapperAbout.getBoundingClientRect();
-        var viewportBottom = window.innerHeight;
-        var sectionBottom = rect.bottom;
-        var bottomIfConstrained = viewportBottom - sectionBottom + defaultBottomRem;
-        mainDotsEl.style.bottom = Math.max(defaultBottomRem, bottomIfConstrained) + 'px';
-        mainDotsEl.style.visibility = (rect.bottom < 0 || rect.top > viewportBottom) ? 'hidden' : 'visible';
-      };
-      updateDotsPosition();
-      window.addEventListener('scroll', updateDotsPosition, { passive: true });
-      window.addEventListener('resize', updateDotsPosition);
-      var observer = new IntersectionObserver(
-        function(entries) {
-          entries.forEach(function(entry) {
-            if (!entry.isIntersecting) return;
-            var idx = Array.prototype.indexOf.call(mediaItems, entry.target);
-            if (idx >= 0) setMainActive(idx);
-          });
-        },
-        { root: null, rootMargin: '-30% 0px -30% 0px', threshold: [0, 0.25, 0.5, 0.75, 1] }
-      );
-      mediaItems.forEach(function(item) { observer.observe(item); });
-      var firstVisible = 0;
-      for (var k = 0; k < mediaItems.length; k++) {
-        var r = mediaItems[k].getBoundingClientRect();
-        if (r.top < window.innerHeight * 0.6) firstVisible = k;
-      }
-      setMainActive(firstVisible);
-    }
 
     images.forEach(function(img) {
       var item = document.createElement('div');
@@ -163,6 +92,67 @@
       scrollEl.appendChild(item);
       imageList.push({ item: item, img: img });
     });
+
+    /* Main-view dots (above images, product-style) - only when multiple images */
+    var mainDotsContainer = null;
+    if (mediaItems.length > 1) {
+      var existingMainDots = container.querySelector('.prada-nav-dots');
+      if (existingMainDots) existingMainDots.remove();
+      mainDotsContainer = document.createElement('div');
+      mainDotsContainer.className = 'prada-nav-dots';
+      mediaItems.forEach(function(item, index) {
+        var dot = document.createElement('span');
+        if (index === 0) dot.classList.add('active');
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('aria-label', 'Go to image ' + (index + 1));
+        dot.dataset.index = index;
+        dot.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var idx = parseInt(dot.dataset.index, 10);
+          var el = mediaItems[idx];
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        mainDotsContainer.appendChild(dot);
+      });
+      container.appendChild(mainDotsContainer);
+
+      var defaultBottomRem = 32;
+      function updateMainDotsPosition() {
+        if (!mainDotsContainer || !mediaWrapper) return;
+        var rect = mediaWrapper.getBoundingClientRect();
+        var viewportBottom = window.innerHeight;
+        var sectionBottom = rect.bottom;
+        var minAboveSectionBottom = defaultBottomRem;
+        var bottomIfConstrained = viewportBottom - sectionBottom + minAboveSectionBottom;
+        mainDotsContainer.style.bottom = Math.max(defaultBottomRem, bottomIfConstrained) + 'px';
+        mainDotsContainer.style.visibility = (rect.bottom < 0 || rect.top > viewportBottom || fullscreen.classList.contains('is-open')) ? 'hidden' : 'visible';
+      }
+      updateMainDotsPosition();
+      window.addEventListener('scroll', updateMainDotsPosition, { passive: true });
+      window.addEventListener('resize', updateMainDotsPosition);
+
+      function updateMainDotsActive() {
+        if (!mainDotsContainer || fullscreen.classList.contains('is-open')) return;
+        var viewportMid = window.innerHeight / 2;
+        var activeIndex = 0;
+        var minDist = Infinity;
+        mediaItems.forEach(function(item, index) {
+          var r = item.getBoundingClientRect();
+          var mid = r.top + r.height / 2;
+          var dist = Math.abs(mid - viewportMid);
+          if (dist < minDist) {
+            minDist = dist;
+            activeIndex = index;
+          }
+        });
+        mainDotsContainer.querySelectorAll('span').forEach(function(dot, i) {
+          dot.classList.toggle('active', i === activeIndex);
+        });
+      }
+      updateMainDotsActive();
+      window.addEventListener('scroll', updateMainDotsActive, { passive: true });
+    }
 
     var dotsEl = document.getElementById('about-split-fullscreen-dots-' + sectionId);
     if (dotsEl && imageList.length > 1) {
@@ -182,9 +172,6 @@
           var idx = parseInt(dot.dataset.index, 10);
           scrollToSlide(idx);
           updateDots(idx);
-          stopAutoScroll();
-          if (scrollEl._scrollTimeout) clearTimeout(scrollEl._scrollTimeout);
-          scrollEl._scrollTimeout = setTimeout(function() { startAutoScroll(); }, 3000);
         });
       });
     }
@@ -195,9 +182,6 @@
         dot.classList.toggle('active', i === activeIndex);
       });
     }
-
-    var autoScrollTimer = null;
-    var autoScrollDelay = 5000;
 
     function scrollToSlide(index) {
       index = Math.max(0, Math.min(index, imageList.length - 1));
@@ -212,46 +196,27 @@
       return Math.min(index, imageList.length - 1);
     }
 
-    function startAutoScroll() {
-      stopAutoScroll();
-      autoScrollTimer = setInterval(function() {
-        if (!fullscreen.classList.contains('is-open')) return;
-        var current = getCurrentSlideIndex();
-        var next = (current + 1) % imageList.length;
-        scrollToSlide(next);
-      }, autoScrollDelay);
-    }
-
-    function stopAutoScroll() {
-      if (autoScrollTimer) {
-        clearInterval(autoScrollTimer);
-        autoScrollTimer = null;
-      }
-    }
-
     images.forEach(function(img, index) {
       img.addEventListener('dblclick', function(e) {
         e.preventDefault();
         e.stopPropagation();
         fullscreen.classList.add('is-open');
         document.body.style.overflow = 'hidden';
+        if (mainDotsContainer) mainDotsContainer.style.visibility = 'hidden';
         scrollToSlide(index);
-        startAutoScroll();
+        updateDots(index);
       });
     });
 
     scrollEl.addEventListener('scroll', function() {
       if (!fullscreen.classList.contains('is-open')) return;
       updateDots(getCurrentSlideIndex());
-      stopAutoScroll();
-      if (scrollEl._scrollTimeout) clearTimeout(scrollEl._scrollTimeout);
-      scrollEl._scrollTimeout = setTimeout(function() { startAutoScroll(); }, 3000);
     });
 
     function closeFullscreen() {
-      stopAutoScroll();
       fullscreen.classList.remove('is-open');
       document.body.style.overflow = '';
+      if (mainDotsContainer) mainDotsContainer.style.visibility = '';
     }
 
     fullscreen.addEventListener('click', function(e) {

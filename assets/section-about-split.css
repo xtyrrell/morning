@@ -18,7 +18,6 @@
 
   /* LEFT: Images - 50%, flows naturally with page scroll */
   .about-split__media-wrapper {
-    position: relative;
     width: 50%;
     flex: 0 0 50%;
     background: #f5f5f5;
@@ -42,6 +41,39 @@
     height: auto;
     display: block;
     vertical-align: top;
+  }
+
+  /* Main-view dots (product-style): fixed left, above images */
+  .about-split .prada-nav-dots {
+    position: fixed;
+    left: 2rem;
+    bottom: 2rem;
+    top: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 100;
+  }
+
+  .about-split .prada-nav-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+
+  .about-split .prada-nav-dots span.active {
+    background: #000;
+  }
+
+  .about-split .prada-nav-dots--light span {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .about-split .prada-nav-dots--light span.active {
+    background: #fff;
   }
 
   /* RIGHT: Content - 50%, sticky so it stays while you scroll the page */
@@ -115,73 +147,40 @@
   height: 1.6rem;
 }
 
+/* Dots on the left - vertical strip */
+.about-split__fullscreen-dots {
+  position: fixed;
+  left: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.about-split__fullscreen-dots span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.about-split__fullscreen-dots span:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.about-split__fullscreen-dots span.active {
+  background: rgb(var(--color-foreground));
+  transform: scale(1.25);
+}
+
 .about-split__fullscreen.is-open {
   display: flex;
-}
-
-/* Dots indicator - same as product view (prada-nav-dots) */
-.about-split__fullscreen .prada-nav-dots {
-  position: fixed;
-  left: 2rem;
-  bottom: 2rem;
-  top: auto;
-  transform: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  z-index: 10000;
-}
-
-.about-split__fullscreen .prada-nav-dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-}
-
-.about-split__fullscreen .prada-nav-dots span.active {
-  background: #000;
-}
-
-.about-split__fullscreen .prada-nav-dots--light span {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.about-split__fullscreen .prada-nav-dots--light span.active {
-  background: #fff;
-}
-
-/* Dots in main about view (not fullscreen) - fixed like product, constrained by JS */
-.about-split__dots {
-  position: fixed;
-  left: 2rem;
-  bottom: 2rem;
-  top: auto;
-  transform: none;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  z-index: 100;
-}
-
-.about-split__dots span {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
-  cursor: pointer;
-}
-
-.about-split__dots span.active {
-  background: #000;
-}
-
-@media screen and (max-width: 749px) {
-  .about-split__dots {
-    left: 1rem;
-    bottom: 1rem;
-  }
 }
 
 .about-split__fullscreen-scroll {
@@ -212,13 +211,13 @@
   justify-content: center;
   padding: 0;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .about-split__fullscreen-item img {
-  max-width: 100%;
-  max-height: 100%;
+  height: 100%;
   width: auto;
-  height: auto;
+  max-width: none;
   object-fit: contain;
   object-position: center;
   pointer-events: none;
@@ -231,6 +230,11 @@
 }
 
 @media screen and (max-width: 749px) {
+  .about-split {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
   .about-split__media-wrapper {
     width: 100%;
   }
@@ -242,6 +246,69 @@
   }
 
   .about-split__content {
-    padding: 2rem 1.5rem;
+    padding: 2rem 1.25rem;
+    max-width: none;
+  }
+
+  .about-split__title {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+
+  .about-split__text {
+    font-size: 1.15rem;
+    line-height: 1.55;
+  }
+
+  /* Main-view dots: compact, safe area */
+  .about-split .prada-nav-dots {
+    left: max(1rem, env(safe-area-inset-left));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    gap: 0.6rem;
+  }
+
+  .about-split .prada-nav-dots span {
+    width: 6px;
+    height: 6px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 19px;
+    margin: -19px;
+    box-sizing: content-box;
+  }
+
+  /* Fullscreen: touch-friendly back button and dots */
+  .about-split__fullscreen-back {
+    top: max(1rem, env(safe-area-inset-top));
+    left: max(1rem, env(safe-area-inset-left));
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .about-split__fullscreen-back svg {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+
+  .about-split__fullscreen-dots {
+    left: max(1rem, env(safe-area-inset-left));
+  }
+
+  .about-split__fullscreen-dots span {
+    width: 0.5rem;
+    height: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 21px;
+    margin: -21px;
+    box-sizing: content-box;
+  }
+
+  .about-split__fullscreen-item img {
+    height: 100%;
+    width: auto;
+    max-width: none;
   }
 }
