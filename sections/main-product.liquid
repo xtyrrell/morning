@@ -77,6 +77,7 @@
     <div class="product product--{{ section.settings.media_size }} product--{{ section.settings.media_position }} product--{{ section.settings.gallery_layout }} product--mobile-{{ section.settings.mobile_thumbnails }} grid grid--1-col {% if product.media.size > 0 %}grid--2-col-tablet{% else %}product--no-media{% endif %}">
       <div class="grid__item product__media-wrapper">
         {% render 'product-media-gallery', variant_images: variant_images %}
+        <div class="product-mobile-dots" id="product-mobile-dots-{{ section.id }}" aria-hidden="true" role="presentation"></div>
       </div>
       <div class="product__info-wrapper grid__item{% if settings.page_width > 1400 and section.settings.media_size == "small" %} product__info-wrapper--extra-padding{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
         <section
@@ -802,6 +803,66 @@
       document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && fullscreen.classList.contains('is-open')) closeFullscreen();
       });
+    })();
+
+    /* Mobile product slider: dots + smooth/precise scroll */
+    (function() {
+      var sectionId = '{{ section.id }}';
+      var dotsWrap = document.getElementById('product-mobile-dots-' + sectionId);
+      var productEl = document.getElementById('MainProduct-' + sectionId);
+      if (!dotsWrap || !productEl) return;
+
+      var sliderList = productEl.querySelector('.product__media-wrapper [id^="Slider-Gallery"]');
+      if (!sliderList) return;
+
+      var slides = Array.from(sliderList.querySelectorAll('.product__media-item'));
+      if (slides.length <= 1) return;
+
+      var fragment = document.createDocumentFragment();
+      for (var i = 0; i < slides.length; i++) {
+        var dot = document.createElement('span');
+        dot.setAttribute('role', 'button');
+        dot.setAttribute('aria-label', 'Go to image ' + (i + 1));
+        dot.dataset.index = i;
+        if (i === 0) dot.classList.add('active');
+        fragment.appendChild(dot);
+      }
+      dotsWrap.appendChild(fragment);
+
+      function slideWidth() {
+        return slides[0] ? slides[0].offsetWidth : 0;
+      }
+
+      function updateDots() {
+        var w = slideWidth();
+        if (!w) return;
+        var idx = Math.round(sliderList.scrollLeft / w);
+        idx = Math.max(0, Math.min(idx, slides.length - 1));
+        dotsWrap.querySelectorAll('span').forEach(function(dot, i) {
+          dot.classList.toggle('active', i === idx);
+        });
+      }
+
+      dotsWrap.querySelectorAll('span').forEach(function(dot) {
+        dot.addEventListener('click', function(e) {
+          e.preventDefault();
+          var idx = parseInt(this.dataset.index, 10);
+          var w = slideWidth();
+          sliderList.scrollTo({ left: idx * w, behavior: 'smooth' });
+          dotsWrap.querySelectorAll('span').forEach(function(d, i) {
+            d.classList.toggle('active', i === idx);
+          });
+        });
+      });
+
+      var scrollTimeout;
+      sliderList.addEventListener('scroll', function() {
+        if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
+        scrollTimeout = window.requestAnimationFrame(updateDots);
+      }, { passive: true });
+
+      window.addEventListener('resize', updateDots);
+      updateDots();
     })();
     </script>
     {%- endif -%}

@@ -452,7 +452,7 @@ product-info .page-width {
   scroll-snap-type: y mandatory;
 }
 
-/* Each slide: full viewport height, image touches top and bottom (full image visible) */
+/* Each slide: full viewport height; image touches top & bottom, full image visible at once (no pan) */
 .product-fullscreen__item {
   height: 100vh;
   height: 100dvh;
@@ -465,13 +465,14 @@ product-info .page-width {
   justify-content: center;
   padding: 0;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
+/* Full image visible in one glance: height fills slide (top/bottom touch), width fits so no horizontal scroll */
 .product-fullscreen__item img {
   height: 100%;
   width: auto;
-  max-width: none;
+  max-width: 100%;
   min-height: 0;
   object-fit: contain;
   object-position: center;
@@ -480,14 +481,20 @@ product-info .page-width {
   display: block;
 }
 
-/* Force full image visible: never crop or zoom (override any cover) */
+/* Force full image visible: never crop, zoom or overflow (override any cover) */
 .product-fullscreen .product-fullscreen__item img {
   object-fit: contain !important;
   object-position: center !important;
+  max-width: 100% !important;
 }
 
 body.product-fullscreen-open .prada-nav-dots {
   visibility: hidden !important;
+}
+
+/* Mobile-only dots: hidden on desktop */
+.product-mobile-dots {
+  display: none;
 }
 
 /* =====================================================
@@ -502,6 +509,7 @@ body.product-fullscreen-open .prada-nav-dots {
 
   /* Image area: fixed height so info fits in view; don't break slider or image loading */
   .product__media-wrapper {
+    position: relative;
     height: 46vh;
     min-height: 38vh;
     max-height: 50vh;
@@ -515,11 +523,14 @@ body.product-fullscreen-open .prada-nav-dots {
     width: 100%;
   }
 
-  /* One slide per view, full width, so images get correct layout and load */
+  /* One slide per view, full width; smooth, precise snap */
   .product__media-wrapper .product__media-list.slider--mobile {
     display: flex;
     height: 100%;
     align-items: center;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scroll-snap-stop: always;
   }
 
   .product__media-wrapper .product__media-list .product__media-item {
@@ -530,6 +541,38 @@ body.product-fullscreen-open .prada-nav-dots {
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  /* Mobile slider dots: small, bottom center of image area */
+  .product-mobile-dots {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    z-index: 2;
+    pointer-events: none;
+    padding: 0 1rem;
+  }
+
+  .product-mobile-dots span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.25);
+    pointer-events: auto;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .product-mobile-dots span.active {
+    background: rgba(0, 0, 0, 0.7);
+    transform: scale(1.2);
   }
 
   .product__media-wrapper .product-media-container {
