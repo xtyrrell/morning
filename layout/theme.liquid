@@ -15,11 +15,30 @@
       <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
     {%- endunless -%}
 
+    {%- liquid
+      assign is_newsletter_404_path = false
+      if template.name == '404' and request.path contains '/pages/'
+        assign _path_parts = request.path | split: '/'
+        for _part in _path_parts reversed
+          if _part != blank
+            if _part == 'mailing-list' or _part == 'newsletter'
+              assign is_newsletter_404_path = true
+            endif
+            break
+          endif
+        endfor
+      endif
+    -%}
+
     <title>
-      {{ page_title }}
-      {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
-      {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
-      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+      {%- if is_newsletter_404_path -%}
+        Mailing list &ndash; {{ shop.name }}
+      {%- else -%}
+        {{ page_title }}
+        {%- if current_tags %} &ndash; tagged "{{ current_tags | join: ', ' }}"{% endif -%}
+        {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
+        {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+      {%- endif -%}
     </title>
 
     {% if page_description %}
@@ -235,10 +254,10 @@
       }
 
       body {
-        display: grid;
-        grid-template-rows: auto auto 1fr auto;
-        grid-template-columns: 100%;
+        display: flex;
+        flex-direction: column;
         min-height: 100%;
+        min-height: 100dvh;
         margin: 0;
         font-size: 1.5rem;
 
@@ -246,6 +265,23 @@
         font-family: var(--font-body-family);
         font-style: var(--font-body-style);
         font-weight: var(--font-body-weight);
+      }
+
+      .page-wrapper {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        min-height: 0;
+      }
+
+      #MainContent {
+        flex: 1 1 auto;
+      }
+
+      .footer-sticky-anchor {
+        flex-shrink: 0;
+        width: 100%;
       }
 
       @media screen and (min-width: 750px) {
@@ -320,6 +356,32 @@
         margin-bottom: 0 !important;
         padding-bottom: 0 !important;
       }
+      /*
+        Product page: stop flex-grow on main wrapper (white band above footer if other CSS wins).
+        !important beats later rules; flex shorthand resets Dawn’s flex: 1 1 auto on #MainContent.
+      */
+      body.template-product #MainContent,
+      body.page-handle-about #MainContent,
+      body.template-index.about-page-active #MainContent {
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
+      }
+      body.template-product .page-wrapper,
+      body.page-handle-about .page-wrapper,
+      body.template-index.about-page-active .page-wrapper {
+        flex: 0 0 auto !important;
+        min-height: 0 !important;
+      }
+      /* No extra section gap before related / footer */
+      body.template-product #MainContent > .shopify-section + .shopify-section {
+        margin-top: 0 !important;
+      }
+      /* Related block: no padding until recommendations load (avoids empty tall band) */
+      body.template-product product-recommendations.related-products:not(.product-recommendations--loaded) {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        min-height: 0 !important;
+      }
       /* About is a separate view: on homepage, hide About section until user clicks About */
       body.template-index .about-split {
         display: none !important;
@@ -334,7 +396,7 @@
     </style>
   </head>
 
-  <body class="gradient template-{{ template.name }}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}">
+  <body class="gradient template-{{ template.name }}{% if template.name == 'page' %}{% if page.handle == 'about' or template.suffix == 'about' %} page-handle-about{% endif %}{% endif %}{% if settings.animations_hover_elements != 'none' %} animate--hover-{{ settings.animations_hover_elements }}{% endif %}">
     <a class="skip-to-content-link button visually-hidden" href="#MainContent">
       {{ 'accessibility.skip_to_text' | t }}
     </a>
@@ -352,7 +414,9 @@
       </main>
     </div>
 
-    {% sections 'footer-group' %}
+    <div class="footer-sticky-anchor">
+      {% sections 'footer-group' %}
+    </div>
 
     <ul hidden>
       <li id="a11y-refresh-page-message">{{ 'accessibility.refresh_page' | t }}</li>
@@ -425,5 +489,7 @@
     {%- if settings.cart_type == 'drawer' -%}
       <script src="{{ 'cart-drawer.js' | asset_url }}" defer="defer"></script>
     {%- endif -%}
+
+    <script src="{{ 'dynamic-checkout-label.js' | asset_url }}" defer="defer"></script>
   </body>
 </html>

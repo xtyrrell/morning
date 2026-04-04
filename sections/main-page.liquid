@@ -1,5 +1,13 @@
 {%- liquid
   assign is_about_page = false
+  assign is_newsletter_template = false
+  assign is_mailing_list_page = false
+  if template.suffix == 'newsletter'
+    assign is_newsletter_template = true
+  endif
+  if page.handle == 'mailing-list' or page.handle == 'newsletter'
+    assign is_mailing_list_page = true
+  endif
   assign handle_lower = page.handle | downcase
   assign title_lower = page.title | downcase
   if handle_lower == 'about'
@@ -13,7 +21,21 @@
   endif
 -%}
 
-{%- if is_about_page and section.settings.about_image != blank -%}
+{%- if is_newsletter_template -%}
+  {%- style -%}
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: 0;
+    }
+    @media screen and (min-width: 750px) {
+      .section-{{ section.id }}-padding {
+        padding-top: {{ section.settings.padding_top }}px;
+        padding-bottom: 0;
+      }
+    }
+  {%- endstyle -%}
+  <div class="newsletter-page__main-spacer section-{{ section.id }}-padding" aria-hidden="true"></div>
+{%- elsif is_about_page and section.settings.about_image != blank -%}
   {{ 'section-about-split.css' | asset_url | stylesheet_tag }}
   <div class="about-split section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
     <div class="about-split__grid">
@@ -49,6 +71,36 @@
       </div>
     </div>
   </div>
+{%- elsif is_mailing_list_page -%}
+  {{ 'component-newsletter.css' | asset_url | stylesheet_tag }}
+  {{ 'newsletter-section.css' | asset_url | stylesheet_tag }}
+
+  {%- style -%}
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+    }
+    @media screen and (min-width: 750px) {
+      .section-{{ section.id }}-padding {
+        padding-top: {{ section.settings.padding_top }}px;
+        padding-bottom: {{ section.settings.padding_bottom }}px;
+      }
+    }
+  {%- endstyle -%}
+
+  <div class="newsletter center newsletter--narrow page-width main-page-mailing-list section-{{ section.id }}-padding">
+    <div class="newsletter__wrapper color-{{ section.settings.color_scheme }} gradient content-container isolate">
+      <h1 class="main-page-title page-title h1">Subscribe to mailing list</h1>
+      <div class="main-page-mailing-list__form">
+        {% render 'newsletter-signup-form', suffix: section.id %}
+      </div>
+    </div>
+  </div>
+  {%- if page.content != blank -%}
+    <div class="page-width page-width--narrow rte section-{{ section.id }}-padding">
+      {{ page.content }}
+    </div>
+  {%- endif -%}
 {%- else -%}
   {{ 'section-main-page.css' | asset_url | stylesheet_tag }}
 
@@ -88,7 +140,7 @@
     },
     {
       "type": "paragraph",
-      "content": "When the page handle is 'about', the image below appears on the left with scroll; page content on the right."
+      "content": "When the page handle is 'about', the image below appears on the left with scroll; page content on the right. Handles 'mailing-list' or 'newsletter' show the email signup form (default page template), or use the 'newsletter' page template for the same form in a second section."
     },
     {
       "type": "image_picker",

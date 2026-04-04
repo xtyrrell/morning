@@ -29,6 +29,21 @@
   }
 </style>
 
+{%- liquid
+  assign newsletter_missing_page = false
+  if request.path contains '/pages/'
+    assign path_parts = request.path | split: '/'
+    for part in path_parts reversed
+      if part != blank
+        if part == 'mailing-list' or part == 'newsletter'
+          assign newsletter_missing_page = true
+        endif
+        break
+      endif
+    endfor
+  endif
+-%}
+
 <div class="template-404 page-width page-margin center">
   {%- if request.path == '/pages/about' or request.path == '/pages/about/' -%}
     <h1 class="title">About page not found</h1>
@@ -44,6 +59,27 @@
       </ol>
     </div>
     <a href="{{ routes.root_url }}" class="button">Back to home</a>
+  {%- elsif newsletter_missing_page -%}
+    {{ 'component-newsletter.css' | asset_url | stylesheet_tag }}
+    {{ 'newsletter-section.css' | asset_url | stylesheet_tag }}
+    <div class="newsletter center newsletter--narrow page-width template-404-newsletter">
+      <div class="newsletter__wrapper color-scheme-1 gradient content-container isolate section-padding-404-newsletter">
+        <h1 class="h1">Subscribe to mailing list</h1>
+        {% render 'newsletter-signup-form', suffix: '404' %}
+      </div>
+    </div>
+    <style>
+      .section-padding-404-newsletter {
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+      }
+      @media screen and (min-width: 750px) {
+        .section-padding-404-newsletter {
+          padding-top: 3rem;
+          padding-bottom: 6rem;
+        }
+      }
+    </style>
   {%- else -%}
     <p>
       {{ 'templates.404.subtext' | t }}

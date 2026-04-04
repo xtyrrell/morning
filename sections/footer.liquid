@@ -1,6 +1,5 @@
 {% comment %}theme-check-disable UndefinedObject{% endcomment %}
 {{ 'section-footer.css' | asset_url | stylesheet_tag }}
-{{ 'component-newsletter.css' | asset_url | stylesheet_tag }}
 {{ 'component-list-menu.css' | asset_url | stylesheet_tag }}
 {{ 'component-list-payment.css' | asset_url | stylesheet_tag }}
 {{ 'component-list-social.css' | asset_url | stylesheet_tag }}
@@ -42,16 +41,10 @@
       assign only_empty_brand = true
     endif
   -%}
-  {%- if section.blocks.size > 0
-    or section.settings.newsletter_enable
-    or section.settings.show_social
-    and has_social_icons == true
-    or section.settings.enable_follow_on_shop
-  -%}
+  {%- if section.blocks.size > 0 -%}
     {%- unless only_empty_brand -%}
       <div class="footer__content-top page-width">
-        {%- if section.blocks.size > 0 -%}
-          {%- liquid
+        {%- liquid
             if section.blocks.size == 9
               assign footer_grid_class = 'grid--3-col-tablet'
             elsif section.blocks.size > 6
@@ -157,97 +150,6 @@
               </div>
             {%- endfor -%}
           </div>
-        {%- endif -%}
-
-        {% if template.name != 'product' %}
-        <div
-          class="footer-block--newsletter{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}"
-          {% if settings.animations_reveal_on_scroll %}
-            data-cascade
-          {% endif %}
-        >
-          {%- if section.settings.newsletter_enable -%}
-            <div class="footer-block__newsletter">
-              {%- if section.settings.newsletter_heading != blank -%}
-                <h2 class="footer-block__heading inline-richtext">{{ section.settings.newsletter_heading }}</h2>
-              {%- endif -%}
-              {%- form 'customer', id: 'ContactFooter', class: 'footer__newsletter newsletter-form' -%}
-                <input type="hidden" name="contact[tags]" value="newsletter">
-                <div class="newsletter-form__field-wrapper">
-                  <div class="field">
-                    <input
-                      id="NewsletterForm--{{ section.id }}"
-                      type="email"
-                      name="contact[email]"
-                      class="field__input"
-                      value="{{ form.email }}"
-                      aria-required="true"
-                      autocorrect="off"
-                      autocapitalize="off"
-                      autocomplete="email"
-                      {% if form.errors %}
-                        autofocus
-                        aria-invalid="true"
-                        aria-describedby="ContactFooter-error"
-                      {% elsif form.posted_successfully? %}
-                        aria-describedby="ContactFooter-success"
-                      {% endif %}
-                      placeholder="{{ 'newsletter.label' | t }}"
-                      required
-                    >
-                    <label class="field__label" for="NewsletterForm--{{ section.id }}">
-                      {{ 'newsletter.label' | t }}
-                    </label>
-                    <button
-                      type="submit"
-                      class="newsletter-form__button field__button"
-                      name="commit"
-                      id="Subscribe"
-                      aria-label="{{ 'newsletter.button_label' | t }}"
-                    >
-                      <span class="svg-wrapper">
-                        {{- 'icon-arrow.svg' | inline_asset_content -}}
-                      </span>
-                    </button>
-                  </div>
-                  {%- if form.errors -%}
-                    <small class="newsletter-form__message form__message" id="ContactFooter-error">
-                      <span class="svg-wrapper">
-                        {{- 'icon-error.svg' | inline_asset_content -}}
-                      </span>
-                      {{- form.errors.translated_fields.email | capitalize }}
-                      {{ form.errors.messages.email -}}
-                    </small>
-                  {%- endif -%}
-                </div>
-                {%- if form.posted_successfully? -%}
-                  <h3
-                    class="newsletter-form__message newsletter-form__message--success form__message"
-                    id="ContactFooter-success"
-                    tabindex="-1"
-                    autofocus
-                  >
-                    <span class="svg-wrapper">
-                      {{- 'icon-success.svg' | inline_asset_content -}}
-                    </span>
-                    {{- 'newsletter.success' | t }}
-                  </h3>
-                {%- endif -%}
-              {%- endform -%}
-            </div>
-          {%- endif -%}
-
-          {%- if shop.features.follow_on_shop? and section.settings.enable_follow_on_shop -%}
-            <div class="footer__follow-on-shop">
-              {{ shop | login_button: action: 'follow' }}
-            </div>
-          {%- endif -%}
-
-          {%- if section.settings.show_social and has_social_icons -%}
-            {%- render 'social-icons', class: 'footer__list-social' -%}
-          {%- endif -%}
-        </div>
-        {% endif %}
       </div>
     {%- endunless -%}
   {%- endif -%}
@@ -299,24 +201,87 @@
         {%- endif -%}
       </div>
     </div>
-    <div class="footer__content-bottom-wrapper page-width{% if section.settings.enable_country_selector == false and section.settings.enable_language_selector == false %} footer__content-bottom-wrapper--center{% endif %}">
-      <div class="footer__copyright caption">
-        <small class="copyright__content"
-          >&copy; {{ 'now' | date: '%Y' }}, {{ shop.name | link_to: routes.root_url -}}
-        </small>
-        {%- if section.settings.show_policy -%}
-          <ul class="policies list-unstyled">
-            {%- for policy in shop.policies -%}
-              {%- if policy != blank -%}
-                <li>
-                  <small class="copyright__content"
-                    ><a href="{{ policy.url }}">{{ policy.title | escape }}</a></small
-                  >
-                </li>
-              {%- endif -%}
-            {%- endfor -%}
-          </ul>
+
+    {%- liquid
+      assign footer_show_aside = false
+      if template.name != 'product'
+        if shop.features.follow_on_shop? and section.settings.enable_follow_on_shop
+          assign footer_show_aside = true
+        endif
+        if section.settings.show_social and has_social_icons
+          assign footer_show_aside = true
+        endif
+      endif
+    -%}
+    {%- if footer_show_aside -%}
+      <div class="footer__content-aside page-width">
+        {%- if shop.features.follow_on_shop? and section.settings.enable_follow_on_shop -%}
+          <div class="footer__follow-on-shop">
+            {{ shop | login_button: action: 'follow' }}
+          </div>
         {%- endif -%}
+        {%- if section.settings.show_social and has_social_icons -%}
+          {%- render 'social-icons', class: 'footer__list-social' -%}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign footer_newsletter_url = '/pages/mailing-list'
+      if section.settings.newsletter_page != blank
+        assign footer_newsletter_url = section.settings.newsletter_page.url
+      elsif pages['mailing-list'] != blank
+        assign footer_newsletter_url = pages['mailing-list'].url
+      elsif pages['newsletter'] != blank
+        assign footer_newsletter_url = pages['newsletter'].url
+      endif
+    -%}
+    <div class="footer__content-bottom-wrapper page-width footer__copyright-row footer__copyright-row--has-link{% if section.settings.enable_country_selector == false and section.settings.enable_language_selector == false %} footer__content-bottom-wrapper--center{% endif %}">
+      <div class="footer__copyright footer__copyright--with-newsletter caption">
+        <div class="footer__copyright-main">
+          <small class="copyright__content"
+            >&copy; {{ 'now' | date: '%Y' }}, {{ shop.name | link_to: routes.root_url -}}
+          </small>
+          {%- if section.settings.show_policy -%}
+            <ul class="policies list-unstyled">
+              {%- for policy in shop.policies -%}
+                {%- if policy != blank -%}
+                  <li>
+                    <small class="copyright__content"
+                      ><a href="{{ policy.url }}">{{ policy.title | escape }}</a></small
+                    >
+                  </li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+        </div>
+      </div>
+      <div class="footer__copyright-newsletter caption">
+        <div class="footer__copyright-aside-links">
+          <small class="copyright__content">
+            <a
+              href="https://www.instagram.com/jadepatonceramics/"
+              class="footer__instagram-link"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <img
+                src="{{ 'instagram-icon.png' | asset_url }}"
+                alt=""
+                width="64"
+                height="64"
+                loading="lazy"
+                class="footer__instagram-icon"
+              >
+              Instagram
+            </a>
+          </small>
+          <span class="footer__copyright-aside-sep" aria-hidden="true"></span>
+          <small class="copyright__content"
+            ><a href="{{ footer_newsletter_url }}">Mailing list</a></small
+          >
+        </div>
       </div>
     </div>
   </div>
@@ -439,7 +404,7 @@
     {
       "type": "checkbox",
       "id": "newsletter_enable",
-      "default": true,
+      "default": false,
       "label": "t:sections.footer.settings.newsletter_enable.label"
     },
     {
@@ -447,6 +412,12 @@
       "id": "newsletter_heading",
       "default": "t:sections.footer.settings.newsletter_heading.default",
       "label": "t:sections.footer.settings.newsletter_heading.label"
+    },
+    {
+      "type": "page",
+      "id": "newsletter_page",
+      "label": "Mailing list page",
+      "info": "Footer “Mailing list” link. Pick your page here, or leave empty to use handle “mailing-list” (or legacy “newsletter”)."
     },
     {
       "type": "header",

@@ -1,0 +1,35 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "color_scheme": "scheme-1",
+        "padding_top": 8,
+        "padding_bottom": 0
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "blocks": {
+        "heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Subscribe to mailing list",
+            "heading_size": "h1"
+          }
+        },
+        "email_form": {
+          "type": "email_form"
+        }
+      },
+      "block_order": ["heading", "email_form"],
+      "settings": {
+        "color_scheme": "scheme-1",
+        "full_width": false,
+        "padding_top": 12,
+        "padding_bottom": 80
+      }
+    }
+  },
+  "order": ["main", "newsletter"]
+}

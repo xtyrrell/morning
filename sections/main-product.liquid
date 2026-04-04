@@ -9,7 +9,6 @@
     data-zoom-on-hover
   {% endif %}
 >
-  {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
   {{ 'component-accordion.css' | asset_url | stylesheet_tag }}
   {{ 'component-price.css' | asset_url | stylesheet_tag }}
   {{ 'component-slider.css' | asset_url | stylesheet_tag }}
@@ -24,6 +23,7 @@
   {%- if product.quantity_price_breaks_configured? -%}
     {{ 'component-volume-pricing.css' | asset_url | stylesheet_tag }}
   {%- endif -%}
+  {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
 
   {%- style -%}
     .section-{{ section.id }}-padding {
@@ -77,7 +77,19 @@
     <div class="product product--{{ section.settings.media_size }} product--{{ section.settings.media_position }} product--{{ section.settings.gallery_layout }} product--mobile-{{ section.settings.mobile_thumbnails }} grid grid--1-col {% if product.media.size > 0 %}grid--2-col-tablet{% else %}product--no-media{% endif %}">
       <div class="grid__item product__media-wrapper">
         {% render 'product-media-gallery', variant_images: variant_images %}
-        <div class="product-mobile-dots" id="product-mobile-dots-{{ section.id }}" aria-hidden="true" role="presentation"></div>
+        <div
+          class="product-mobile-gallery-progress"
+          id="product-mobile-gallery-progress-{{ section.id }}"
+          aria-hidden="true"
+          hidden
+        >
+          <div class="product-mobile-gallery-progress__track">
+            <div
+              class="product-mobile-gallery-progress__fill"
+              id="product-mobile-gallery-progress-fill-{{ section.id }}"
+            ></div>
+          </div>
+        </div>
       </div>
       <div class="product__info-wrapper grid__item{% if settings.page_width > 1400 and section.settings.media_size == "small" %} product__info-wrapper--extra-padding{% endif %}{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--slide-in{% endif %}">
         <section
@@ -87,6 +99,24 @@
           {%- assign product_form_id = 'product-form-' | append: section.id -%}
 
           {%- for block in section.blocks -%}
+            {%- liquid
+              assign qty_next_idx = forloop.index0 | plus: 1
+              assign wrap_qty_checkout_row = false
+              if block.type == 'quantity_selector' and qty_next_idx < section.blocks.size
+                assign _qty_next = section.blocks[qty_next_idx]
+                if _qty_next.type == 'buy_buttons'
+                  assign wrap_qty_checkout_row = true
+                endif
+              endif
+              assign close_qty_checkout_row = false
+              assign bb_prev_idx = forloop.index0 | minus: 1
+              if block.type == 'buy_buttons' and bb_prev_idx >= 0
+                assign _bb_prev = section.blocks[bb_prev_idx]
+                if _bb_prev.type == 'quantity_selector'
+                  assign close_qty_checkout_row = true
+                endif
+              endif
+            -%}
             {%- case block.type -%}
               {%- when '@app' -%}
                 {% render block %}
@@ -229,6 +259,9 @@
                   </details>
                 </div>
               {%- when 'quantity_selector' -%}
+                {%- if wrap_qty_checkout_row -%}
+                  <div class="product-form__qty-checkout-row">
+                {%- endif -%}
                 <div
                   id="Quantity-Form-{{ section.id }}"
                   class="product-form__input product-form__quantity{% if settings.inputs_shadow_vertical_offset != 0 and settings.inputs_shadow_vertical_offset < 0 %} product-form__quantity-top{% endif %}"
@@ -484,8 +517,12 @@
                   product: product,
                   product_form_id: product_form_id,
                   section_id: section.id,
-                  show_pickup_availability: true
+                  show_pickup_availability: true,
+                  qty_checkout_row: close_qty_checkout_row
                 -%}
+                {%- if close_qty_checkout_row -%}
+                  </div>
+                {%- endif -%}
               {%- when 'rating' -%}
                 {%- if product.metafields.reviews.rating.value != blank -%}
                   <div class="rating-wrapper">
@@ -721,8 +758,10 @@
         var clone = document.createElement('img');
         clone.src = img.currentSrc || img.getAttribute('src');
         if (img.srcset) clone.srcset = img.srcset;
-        if (img.sizes) clone.sizes = img.sizes;
+        clone.sizes = '100vw';
         clone.alt = img.alt || '';
+        clone.setAttribute('loading', 'eager');
+        clone.style.cssText = 'display:block;width:100vw;height:100vh;height:100dvh;object-fit:contain;object-position:center;';
         slide.appendChild(clone);
         scrollEl.appendChild(slide);
         imageList.push(slide);
@@ -768,8 +807,11 @@
         return Math.min(index, imageList.length - 1);
       }
 
+      var isMobile = function() { return window.innerWidth < 750; };
+
       itemsWithSlides.forEach(function(entry, index) {
-        entry.img.addEventListener('dblclick', function(e) {
+        /* Desktop: single click opens fullscreen (full image, object-fit contain). Mobile: touchend after tap. */
+        function openAtSlide(e) {
           e.preventDefault();
           e.stopPropagation();
           fullscreen.classList.add('is-open');
@@ -777,6 +819,20 @@
           document.body.style.overflow = 'hidden';
           scrollToSlide(index);
           updateDots(index);
+        }
+
+        entry.img.addEventListener('click', function(e) {
+          if (!isMobile()) openAtSlide(e);
+        });
+
+        /* Single tap on mobile: use touchend to avoid interfering with horizontal swipe */
+        var touchMoved = false;
+        entry.item.addEventListener('touchstart', function() { touchMoved = false; }, { passive: true });
+        entry.item.addEventListener('touchmove', function() { touchMoved = true; }, { passive: true });
+        entry.item.addEventListener('touchend', function(e) {
+          if (!touchMoved && isMobile()) {
+            openAtSlide(e);
+          }
         });
       });
 
@@ -805,12 +861,14 @@
       });
     })();
 
-    /* Mobile product slider: dots + smooth/precise scroll */
+    /* Mobile gallery only: horizontal scroll → progress bar (desktop uses product-info.js + vertical scroll). */
     (function() {
+      if (window.matchMedia('(min-width: 750px)').matches) return;
       var sectionId = '{{ section.id }}';
-      var dotsWrap = document.getElementById('product-mobile-dots-' + sectionId);
+      var progressWrap = document.getElementById('product-mobile-gallery-progress-' + sectionId);
+      var progressFill = document.getElementById('product-mobile-gallery-progress-fill-' + sectionId);
       var productEl = document.getElementById('MainProduct-' + sectionId);
-      if (!dotsWrap || !productEl) return;
+      if (!progressWrap || !progressFill || !productEl) return;
 
       var sliderList = productEl.querySelector('.product__media-wrapper [id^="Slider-Gallery"]');
       if (!sliderList) return;
@@ -818,51 +876,37 @@
       var slides = Array.from(sliderList.querySelectorAll('.product__media-item'));
       if (slides.length <= 1) return;
 
-      var fragment = document.createDocumentFragment();
-      for (var i = 0; i < slides.length; i++) {
-        var dot = document.createElement('span');
-        dot.setAttribute('role', 'button');
-        dot.setAttribute('aria-label', 'Go to image ' + (i + 1));
-        dot.dataset.index = i;
-        if (i === 0) dot.classList.add('active');
-        fragment.appendChild(dot);
-      }
-      dotsWrap.appendChild(fragment);
+      progressWrap.removeAttribute('hidden');
 
-      function slideWidth() {
-        return slides[0] ? slides[0].offsetWidth : 0;
-      }
-
-      function updateDots() {
-        var w = slideWidth();
-        if (!w) return;
-        var idx = Math.round(sliderList.scrollLeft / w);
-        idx = Math.max(0, Math.min(idx, slides.length - 1));
-        dotsWrap.querySelectorAll('span').forEach(function(dot, i) {
-          dot.classList.toggle('active', i === idx);
-        });
+      function updateProgressBar() {
+        var el = sliderList;
+        var maxScroll = el.scrollWidth - el.clientWidth;
+        progressFill.style.top = '0';
+        progressFill.style.height = '2px';
+        if (maxScroll <= 0) {
+          progressFill.style.width = '100%';
+          progressFill.style.left = '0';
+          return;
+        }
+        /* Scrollbar-style thumb: width = viewport share of total scroll width */
+        var thumbPct = (el.clientWidth / el.scrollWidth) * 100;
+        thumbPct = Math.max(6, Math.min(thumbPct, 100));
+        var travelPct = 100 - thumbPct;
+        var t = el.scrollLeft / maxScroll;
+        t = Math.max(0, Math.min(1, t));
+        /* Thumb starts left, moves right as scrollLeft increases */
+        progressFill.style.width = thumbPct + '%';
+        progressFill.style.left = t * travelPct + '%';
       }
 
-      dotsWrap.querySelectorAll('span').forEach(function(dot) {
-        dot.addEventListener('click', function(e) {
-          e.preventDefault();
-          var idx = parseInt(this.dataset.index, 10);
-          var w = slideWidth();
-          sliderList.scrollTo({ left: idx * w, behavior: 'smooth' });
-          dotsWrap.querySelectorAll('span').forEach(function(d, i) {
-            d.classList.toggle('active', i === idx);
-          });
-        });
-      });
-
-      var scrollTimeout;
+      var scrollRaf;
       sliderList.addEventListener('scroll', function() {
-        if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
-        scrollTimeout = window.requestAnimationFrame(updateDots);
+        if (scrollRaf) window.cancelAnimationFrame(scrollRaf);
+        scrollRaf = window.requestAnimationFrame(updateProgressBar);
       }, { passive: true });
 
-      window.addEventListener('resize', updateDots);
-      updateDots();
+      window.addEventListener('resize', updateProgressBar);
+      updateProgressBar();
     })();
     </script>
     {%- endif -%}
@@ -918,72 +962,6 @@
     </script>
   </div>
 
-  {%- comment -%}
-    Inline subscribe block for product page so the divider line can align
-    exactly with the bottom of the image area.
-  {%- endcomment -%}
-  <div class="product-subscribe">
-    <div class="product-subscribe__divider"></div>
-    <div class="product-subscribe__inner">
-      <h2 class="product-subscribe__heading">
-        Subscribe to mailing list
-      </h2>
-      {% form 'customer', class: 'newsletter-form' %}
-        <input type="hidden" name="contact[tags]" value="newsletter">
-        <div class="newsletter-form__field-wrapper">
-          <div class="field">
-            <input
-              id="ProductNewsletter-{{ section.id }}"
-              type="email"
-              name="contact[email]"
-              class="field__input"
-              value="{{ form.email }}"
-              aria-required="true"
-              autocorrect="off"
-              autocapitalize="off"
-              autocomplete="email"
-              {% if form.errors %}
-                autofocus
-                aria-invalid="true"
-                aria-describedby="ProductNewsletter-error-{{ section.id }}"
-              {% elsif form.posted_successfully? %}
-                aria-describedby="ProductNewsletter-success-{{ section.id }}"
-              {% endif %}
-              placeholder="{{ 'newsletter.label' | t }}"
-              required
-            >
-            <label class="field__label" for="ProductNewsletter-{{ section.id }}">
-              {{ 'newsletter.label' | t }}
-            </label>
-            <button
-              type="submit"
-              class="newsletter-form__button field__button"
-              name="commit"
-              aria-label="{{ 'newsletter.button_label' | t }}"
-            >
-              <span class="svg-wrapper">
-                {{- 'icon-arrow.svg' | inline_asset_content -}}
-              </span>
-            </button>
-          </div>
-          {%- if form.errors -%}
-            <small class="newsletter-form__message form__message" id="ProductNewsletter-error-{{ section.id }}">
-              {{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}
-            </small>
-          {%- endif -%}
-          {%- if form.posted_successfully? -%}
-            <small
-              class="newsletter-form__message newsletter-form__message--success form__message"
-              id="ProductNewsletter-success-{{ section.id }}"
-              tabindex="-1"
-            >
-              {{- 'newsletter.success' | t }}
-            </small>
-          {%- endif -%}
-        </div>
-      {% endform %}
-    </div>
-  </div>
 </product-info>
 
 {% schema %}

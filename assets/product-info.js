@@ -57,108 +57,75 @@ if (!customElements.get('product-info')) {
 
     infoWrapper.addEventListener('wheel', onWheel, { passive: false });
 
-    /* Create Prada-style navigation dots - fixed, constrained to image section bounds */
+    /* Same thin scroll-linked bar as mobile; vertical scroll on .product__media-wrapper */
     const existingDots = document.querySelector('.prada-nav-dots');
     if (existingDots) existingDots.remove();
 
-    const dotsContainer = document.createElement('div');
-    dotsContainer.className = 'prada-nav-dots';
+    const sectionId = this.dataset.section;
+    const progressWrap = this.querySelector(`#product-mobile-gallery-progress-${sectionId}`);
+    const progressFill = this.querySelector(`#product-mobile-gallery-progress-fill-${sectionId}`);
+    if (progressWrap && progressFill && mediaItems.length > 1) {
+      progressWrap.removeAttribute('hidden');
+    }
 
-    const dots = mediaItems.map((item, index) => {
-      const dot = document.createElement('span');
-      if (index === 0) dot.classList.add('active');
-      dot.addEventListener('click', () => {
-        const targetTop = item.offsetTop - mediaWrapper.offsetTop;
-        mediaWrapper.scrollTo({ top: targetTop, behavior: 'smooth' });
-      });
-      dotsContainer.appendChild(dot);
-      return dot;
-    });
-
-    document.body.appendChild(dotsContainer);
-
-    /* Dots at bottom-left. Never let them sit below image section (never over white area below) */
-    const defaultBottomRem = 32;
-    const updateDotsPosition = () => {
-      const rect = mediaWrapper.getBoundingClientRect();
-      const viewportBottom = window.innerHeight;
-      const sectionBottom = rect.bottom;
-      const minAboveSectionBottom = defaultBottomRem;
-      const bottomIfConstrained = viewportBottom - sectionBottom + minAboveSectionBottom;
-      dotsContainer.style.bottom = `${Math.max(defaultBottomRem, bottomIfConstrained)}px`;
-      dotsContainer.style.visibility = rect.bottom < 0 || rect.top > viewportBottom ? 'hidden' : 'visible';
+    const syncRailPosition = () => {
+      if (!progressWrap || progressWrap.hasAttribute('hidden')) return;
+      const r = mediaWrapper.getBoundingClientRect();
+      progressWrap.style.position = 'fixed';
+      const railW = 2;
+      progressWrap.style.left = `${r.right - railW}px`;
+      progressWrap.style.top = `${r.top}px`;
+      progressWrap.style.width = `${railW}px`;
+      progressWrap.style.height = `${r.height}px`;
     };
 
-    updateDotsPosition();
-    window.addEventListener('scroll', updateDotsPosition, { passive: true });
-    window.addEventListener('resize', updateDotsPosition);
-
-    /* Sync active dot with scroll position and dot color (white on dark images) */
-    const brightnessCache = {};
-    const updateDotsAppearance = (activeItem) => {
-      const img = activeItem ? activeItem.querySelector('img') : null;
-      const src = img ? (img.currentSrc || img.src) : '';
-      if (!src) {
-        dotsContainer.classList.remove('prada-nav-dots--light');
+    const updateDesktopProgress = () => {
+      if (!progressFill) return;
+      const el = mediaWrapper;
+      const viewH = el.clientHeight;
+      const scrollH = el.scrollHeight;
+      const maxScroll = scrollH - viewH;
+      progressFill.style.width = '100%';
+      progressFill.style.left = '0';
+      /* Pixels on visible track; thumb moves down as scrollTop increases */
+      const trackH = viewH;
+      if (maxScroll <= 0 || trackH <= 0) {
+        progressFill.style.height = `${Math.max(0, trackH)}px`;
+        progressFill.style.top = '0';
         return;
       }
-      if (brightnessCache[src] !== undefined) {
-        dotsContainer.classList.toggle('prada-nav-dots--light', brightnessCache[src] < 0.4);
-        return;
-      }
-      const probe = new Image();
-      probe.crossOrigin = 'anonymous';
-      probe.onload = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          const size = 32;
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(probe, 0, 0, size, size);
-          const data = ctx.getImageData(0, 0, size, size).data;
-          let sum = 0;
-          for (let i = 0; i < data.length; i += 4) {
-            sum += (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) / 255;
-          }
-          const avg = sum / (data.length / 4);
-          brightnessCache[src] = avg;
-          dotsContainer.classList.toggle('prada-nav-dots--light', avg < 0.4);
-        } catch (e) {
-          dotsContainer.classList.remove('prada-nav-dots--light');
-        }
-      };
-      probe.onerror = () => {
-        brightnessCache[src] = 0.5;
-        dotsContainer.classList.remove('prada-nav-dots--light');
-      };
-      probe.src = src;
+      let thumbH = (viewH / scrollH) * trackH;
+      thumbH = Math.max(6, Math.min(thumbH, trackH));
+      const travel = trackH - thumbH;
+      let t = el.scrollTop / maxScroll;
+      t = Math.max(0, Math.min(1, t));
+      progressFill.style.height = `${thumbH}px`;
+      progressFill.style.top = `${t * travel}px`;
     };
 
-    const onScroll = () => {
-      const scrollTop = mediaWrapper.scrollTop;
-      let activeIndex = 0;
-      mediaItems.forEach((item, index) => {
-        const itemTop = item.offsetTop - mediaWrapper.offsetTop;
-        if (scrollTop >= itemTop - item.clientHeight / 2) {
-          activeIndex = index;
-        }
-      });
-      dots.forEach((dot, index) => {
-        dot.classList.toggle('active', index === activeIndex);
-      });
-      updateDotsAppearance(mediaItems[activeIndex]);
+    const onLayoutScroll = () => {
+      syncRailPosition();
+      updateDesktopProgress();
     };
 
-    mediaWrapper.addEventListener('scroll', onScroll);
-    updateDotsAppearance(mediaItems[0]);
+    mediaWrapper.addEventListener('scroll', onLayoutScroll, { passive: true });
+    window.addEventListener('resize', onLayoutScroll);
+    window.addEventListener('scroll', onLayoutScroll, { passive: true });
+
+    onLayoutScroll();
 
     this._pradaScrollCleanup = () => {
       infoWrapper.removeEventListener('wheel', onWheel);
-      mediaWrapper.removeEventListener('scroll', onScroll);
-      window.removeEventListener('scroll', updateDotsPosition);
-      window.removeEventListener('resize', updateDotsPosition);
-      dotsContainer.remove();
+      mediaWrapper.removeEventListener('scroll', onLayoutScroll);
+      window.removeEventListener('resize', onLayoutScroll);
+      window.removeEventListener('scroll', onLayoutScroll);
+      if (progressWrap) {
+        progressWrap.style.position = '';
+        progressWrap.style.left = '';
+        progressWrap.style.top = '';
+        progressWrap.style.width = '';
+        progressWrap.style.height = '';
+      }
     };
   }
 

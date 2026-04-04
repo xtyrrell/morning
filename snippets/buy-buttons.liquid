@@ -6,11 +6,15 @@
   - product_form_id: {String} product form id.
   - section_id: {String} id of section to which this snippet belongs.
   - show_pickup_availability: {Boolean} for the pickup availability. If true the pickup availability is rendered, false - not rendered (optional).
+  - qty_checkout_row: {Boolean} when true, product form is wrapped for side-by-side quantity + dynamic checkout (set from main-product when those blocks are adjacent).
 
   Usage:
   {% render 'buy-buttons', block: block, product: product, product_form_id: product_form_id, section_id: section.id, show_pickup_availability: true %}
 {% endcomment %}
-<div {{ block.shopify_attributes }}>
+<div
+  class="product-form__buy-buttons-shell{% if qty_checkout_row %} product-form__buy-buttons-shell--qty-row{% endif %}"
+  {{ block.shopify_attributes }}
+>
   {%- if product != blank -%}
     {%- liquid
       assign gift_card_recipient_feature_active = false
@@ -25,7 +29,7 @@
     -%}
 
     <product-form
-      class="product-form"
+      class="product-form{% if qty_checkout_row %} product-form--in-qty-row{% endif %}"
       data-hide-errors="{{ gift_card_recipient_feature_active }}"
       data-section-id="{{ section.id }}"
     >
@@ -60,7 +64,7 @@
           {%- render 'gift-card-recipient-form', product: product, form: form, section: section -%}
         {%- endif -%}
 
-        <div class="product-form__buttons">
+        <div class="product-form__buttons{% if qty_checkout_row %} product-form__buttons--qty-checkout-row{% endif %}">
           {%- liquid
             assign check_against_inventory = true
             if product.selected_or_first_available_variant.inventory_management != 'shopify' or product.selected_or_first_available_variant.inventory_policy == 'continue'
@@ -100,7 +104,7 @@
       {%- endform -%}
     </product-form>
   {%- else -%}
-    <div class="product-form">
+    <div class="product-form{% if qty_checkout_row %} product-form--in-qty-row{% endif %}">
       <div class="product-form__buttons form">
         <button
           type="submit"
@@ -113,39 +117,39 @@
       </div>
     </div>
   {%- endif -%}
-
-  {%- if show_pickup_availability -%}
-    {{ 'component-pickup-availability.css' | asset_url | stylesheet_tag }}
-
-    {%- assign pick_up_availabilities = product.selected_or_first_available_variant.store_availabilities
-      | where: 'pick_up_enabled', true
-    -%}
-
-    <pickup-availability
-      class="product__pickup-availabilities quick-add-hidden"
-      {% if product.selected_or_first_available_variant.available and pick_up_availabilities.size > 0 %}
-        available
-      {% endif %}
-      data-root-url="{{ routes.root_url }}"
-      data-variant-id="{{ product.selected_or_first_available_variant.id }}"
-      data-has-only-default-variant="{{ product.has_only_default_variant }}"
-      data-product-page-color-scheme="gradient color-{{ section.settings.color_scheme }}"
-    >
-      <template>
-        <pickup-availability-preview class="pickup-availability-preview">
-          <span class="svg-wrapper">
-            {{- 'icon-unavailable.svg' | inline_asset_content -}}
-          </span>
-          <div class="pickup-availability-info">
-            <p class="caption-large">{{ 'products.product.pickup_availability.unavailable' | t }}</p>
-            <button class="pickup-availability-button link link--text underlined-link">
-              {{ 'products.product.pickup_availability.refresh' | t }}
-            </button>
-          </div>
-        </pickup-availability-preview>
-      </template>
-    </pickup-availability>
-
-    <script src="{{ 'pickup-availability.js' | asset_url }}" defer="defer"></script>
-  {%- endif -%}
 </div>
+
+{%- if show_pickup_availability -%}
+  {{ 'component-pickup-availability.css' | asset_url | stylesheet_tag }}
+
+  {%- assign pick_up_availabilities = product.selected_or_first_available_variant.store_availabilities
+    | where: 'pick_up_enabled', true
+  -%}
+
+  <pickup-availability
+    class="product__pickup-availabilities quick-add-hidden"
+    {% if product.selected_or_first_available_variant.available and pick_up_availabilities.size > 0 %}
+      available
+    {% endif %}
+    data-root-url="{{ routes.root_url }}"
+    data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+    data-has-only-default-variant="{{ product.has_only_default_variant }}"
+    data-product-page-color-scheme="gradient color-{{ section.settings.color_scheme }}"
+  >
+    <template>
+      <pickup-availability-preview class="pickup-availability-preview">
+        <span class="svg-wrapper">
+          {{- 'icon-unavailable.svg' | inline_asset_content -}}
+        </span>
+        <div class="pickup-availability-info">
+          <p class="caption-large">{{ 'products.product.pickup_availability.unavailable' | t }}</p>
+          <button class="pickup-availability-button link link--text underlined-link">
+            {{ 'products.product.pickup_availability.refresh' | t }}
+          </button>
+        </div>
+      </pickup-availability-preview>
+    </template>
+  </pickup-availability>
+
+  <script src="{{ 'pickup-availability.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}

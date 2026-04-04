@@ -10,7 +10,8 @@
 <div id="about" class="about-split section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
   <div class="about-split__grid">
     <div class="about-split__media-wrapper">
-        <div class="about-split__media-list">
+      <div class="about-split__media-slider">
+        <div class="about-split__media-list" id="AboutSplitMediaList-{{ section.id }}">
           <div class="about-split__media-item">
             <img
               src="{{ '_DSC6264-1.jpg' | asset_url }}"
@@ -22,9 +23,9 @@
           </div>
           <div class="about-split__media-item">
             <img
-              src="{{ '_DSC9238.jpg' | asset_url }}"
+              src="{{ 'IMG_8262.jpg' | asset_url }}"
               alt="{{ page.title | default: 'About' | escape }}"
-              loading="lazy"
+              loading="eager"
               width="1200"
               height="800"
             >
@@ -39,6 +40,20 @@
             >
           </div>
         </div>
+      </div>
+      <div
+        class="about-gallery-progress"
+        id="about-gallery-progress-{{ section.id }}"
+        aria-hidden="true"
+        hidden
+      >
+        <div class="about-gallery-progress__track">
+          <div
+            class="about-gallery-progress__fill"
+            id="about-gallery-progress-fill-{{ section.id }}"
+          ></div>
+        </div>
+      </div>
     </div>
     <div class="about-split__content-wrapper">
       <div class="about-split__content">
@@ -76,84 +91,143 @@
     if (!fullscreen || !scrollEl || !container) return;
 
     var mediaWrapper = container.querySelector('.about-split__media-wrapper');
+    var contentWrapper = container.querySelector('.about-split__content-wrapper');
+    var mediaList = document.getElementById('AboutSplitMediaList-' + sectionId);
     var mediaItems = Array.from(container.querySelectorAll('.about-split__media-item'));
     var images = container.querySelectorAll('.about-split__media-item img');
+    var progressWrap = document.getElementById('about-gallery-progress-' + sectionId);
+    var progressFill = document.getElementById('about-gallery-progress-fill-' + sectionId);
     var imageList = [];
 
-    images.forEach(function(img) {
-      var item = document.createElement('div');
-      item.className = 'about-split__fullscreen-item';
+    Array.prototype.forEach.call(images, function(img) {
+      var mediaItem = img.closest('.about-split__media-item');
+      if (!mediaItem) return;
+
+      var slide = document.createElement('div');
+      slide.className = 'about-split__fullscreen-item';
       var clone = document.createElement('img');
       clone.src = img.currentSrc || img.getAttribute('src');
       if (img.srcset) clone.srcset = img.srcset;
       if (img.sizes) clone.sizes = img.sizes;
       clone.alt = img.alt || '';
-      item.appendChild(clone);
-      scrollEl.appendChild(item);
-      imageList.push({ item: item, img: img });
+      slide.appendChild(clone);
+      scrollEl.appendChild(slide);
+      imageList.push({ mediaItem: mediaItem, img: img });
     });
 
-    /* Main-view dots (above images, product-style) - only when multiple images */
-    var mainDotsContainer = null;
-    if (mediaItems.length > 1) {
-      var existingMainDots = container.querySelector('.prada-nav-dots');
-      if (existingMainDots) existingMainDots.remove();
-      mainDotsContainer = document.createElement('div');
-      mainDotsContainer.className = 'prada-nav-dots';
-      mediaItems.forEach(function(item, index) {
-        var dot = document.createElement('span');
-        if (index === 0) dot.classList.add('active');
-        dot.setAttribute('role', 'button');
-        dot.setAttribute('aria-label', 'Go to image ' + (index + 1));
-        dot.dataset.index = index;
-        dot.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var idx = parseInt(dot.dataset.index, 10);
-          var el = mediaItems[idx];
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-        mainDotsContainer.appendChild(dot);
-      });
-      container.appendChild(mainDotsContainer);
+    /* ——— Desktop (≥750px): same as product — scroll images in left column, wheel on text scrolls images, right-edge rail ——— */
+    function setupDesktopGallery() {
+      if (window.matchMedia('(max-width: 749px)').matches) return;
+      if (!mediaWrapper || !contentWrapper || !mediaItems.length) return;
 
-      var defaultBottomRem = 32;
-      function updateMainDotsPosition() {
-        if (!mainDotsContainer || !mediaWrapper) return;
-        var rect = mediaWrapper.getBoundingClientRect();
-        var viewportBottom = window.innerHeight;
-        var sectionBottom = rect.bottom;
-        var minAboveSectionBottom = defaultBottomRem;
-        var bottomIfConstrained = viewportBottom - sectionBottom + minAboveSectionBottom;
-        mainDotsContainer.style.bottom = Math.max(defaultBottomRem, bottomIfConstrained) + 'px';
-        mainDotsContainer.style.visibility = (rect.bottom < 0 || rect.top > viewportBottom || fullscreen.classList.contains('is-open')) ? 'hidden' : 'visible';
-      }
-      updateMainDotsPosition();
-      window.addEventListener('scroll', updateMainDotsPosition, { passive: true });
-      window.addEventListener('resize', updateMainDotsPosition);
+      var onWheel = function(event) {
+        var deltaY = event.deltaY;
+        var atTop = mediaWrapper.scrollTop <= 0;
+        var atBottom =
+          Math.ceil(mediaWrapper.scrollTop + mediaWrapper.clientHeight) >= mediaWrapper.scrollHeight;
+        if ((deltaY > 0 && !atBottom) || (deltaY < 0 && !atTop)) {
+          event.preventDefault();
+          mediaWrapper.scrollTop += deltaY;
+        }
+      };
+      contentWrapper.addEventListener('wheel', onWheel, { passive: false });
 
-      function updateMainDotsActive() {
-        if (!mainDotsContainer || fullscreen.classList.contains('is-open')) return;
-        var viewportMid = window.innerHeight / 2;
-        var activeIndex = 0;
-        var minDist = Infinity;
-        mediaItems.forEach(function(item, index) {
-          var r = item.getBoundingClientRect();
-          var mid = r.top + r.height / 2;
-          var dist = Math.abs(mid - viewportMid);
-          if (dist < minDist) {
-            minDist = dist;
-            activeIndex = index;
-          }
-        });
-        mainDotsContainer.querySelectorAll('span').forEach(function(dot, i) {
-          dot.classList.toggle('active', i === activeIndex);
-        });
+      if (progressWrap && progressFill && mediaItems.length > 1) {
+        progressWrap.removeAttribute('hidden');
       }
-      updateMainDotsActive();
-      window.addEventListener('scroll', updateMainDotsActive, { passive: true });
+
+      var syncRailPosition = function() {
+        if (!progressWrap || progressWrap.hasAttribute('hidden')) return;
+        var r = mediaWrapper.getBoundingClientRect();
+        progressWrap.style.position = 'fixed';
+        var railW = 2;
+        progressWrap.style.left = r.right - railW + 'px';
+        progressWrap.style.top = r.top + 'px';
+        progressWrap.style.width = railW + 'px';
+        progressWrap.style.height = r.height + 'px';
+      };
+
+      var updateDesktopProgress = function() {
+        if (!progressFill) return;
+        var el = mediaWrapper;
+        var viewH = el.clientHeight;
+        var scrollH = el.scrollHeight;
+        var maxScroll = scrollH - viewH;
+        progressFill.style.width = '100%';
+        progressFill.style.left = '0';
+        var trackH = viewH;
+        if (maxScroll <= 0 || trackH <= 0) {
+          progressFill.style.height = Math.max(0, trackH) + 'px';
+          progressFill.style.top = '0';
+          return;
+        }
+        var thumbH = (viewH / scrollH) * trackH;
+        thumbH = Math.max(6, Math.min(thumbH, trackH));
+        var travel = trackH - thumbH;
+        var t = el.scrollTop / maxScroll;
+        t = Math.max(0, Math.min(1, t));
+        progressFill.style.height = thumbH + 'px';
+        progressFill.style.top = t * travel + 'px';
+      };
+
+      var onLayoutScroll = function() {
+        syncRailPosition();
+        updateDesktopProgress();
+      };
+
+      mediaWrapper.addEventListener('scroll', onLayoutScroll, { passive: true });
+      window.addEventListener('resize', onLayoutScroll);
+      window.addEventListener('scroll', onLayoutScroll, { passive: true });
+      onLayoutScroll();
     }
 
+    /* ——— Mobile: horizontal strip + thin progress under gallery (product-style) ——— */
+    function setupMobileGallery() {
+      if (window.matchMedia('(min-width: 750px)').matches) return;
+      if (!mediaList || !progressWrap || !progressFill) return;
+      if (mediaItems.length <= 1) return;
+
+      progressWrap.removeAttribute('hidden');
+
+      function updateProgressBar() {
+        var el = mediaList;
+        var maxScroll = el.scrollWidth - el.clientWidth;
+        progressFill.style.top = '0';
+        progressFill.style.height = '2px';
+        if (maxScroll <= 0) {
+          progressFill.style.width = '100%';
+          progressFill.style.left = '0';
+          return;
+        }
+        var thumbPct = (el.clientWidth / el.scrollWidth) * 100;
+        thumbPct = Math.max(6, Math.min(thumbPct, 100));
+        var travelPct = 100 - thumbPct;
+        var t = el.scrollLeft / maxScroll;
+        t = Math.max(0, Math.min(1, t));
+        progressFill.style.width = thumbPct + '%';
+        progressFill.style.left = t * travelPct + '%';
+      }
+
+      var scrollRaf;
+      mediaList.addEventListener(
+        'scroll',
+        function() {
+          if (scrollRaf) window.cancelAnimationFrame(scrollRaf);
+          scrollRaf = window.requestAnimationFrame(updateProgressBar);
+        },
+        { passive: true }
+      );
+      window.addEventListener('resize', updateProgressBar);
+      updateProgressBar();
+    }
+
+    if (window.matchMedia('(min-width: 750px)').matches) {
+      setupDesktopGallery();
+    } else {
+      setupMobileGallery();
+    }
+
+    /* Fullscreen dots + vertical snap scroll */
     var dotsEl = document.getElementById('about-split-fullscreen-dots-' + sectionId);
     if (dotsEl && imageList.length > 1) {
       var dotsFragment = document.createDocumentFragment();
@@ -196,15 +270,37 @@
       return Math.min(index, imageList.length - 1);
     }
 
-    images.forEach(function(img, index) {
-      img.addEventListener('dblclick', function(e) {
+    var isMobile = function() {
+      return window.innerWidth < 750;
+    };
+
+    imageList.forEach(function(entry, index) {
+      function openAtSlide(e) {
         e.preventDefault();
         e.stopPropagation();
         fullscreen.classList.add('is-open');
+        document.body.classList.add('about-split-fullscreen-open');
         document.body.style.overflow = 'hidden';
-        if (mainDotsContainer) mainDotsContainer.style.visibility = 'hidden';
+        if (progressWrap) progressWrap.style.visibility = 'hidden';
         scrollToSlide(index);
         updateDots(index);
+      }
+
+      entry.img.addEventListener('click', function(e) {
+        if (!isMobile()) openAtSlide(e);
+      });
+
+      var touchMoved = false;
+      entry.mediaItem.addEventListener('touchstart', function() {
+        touchMoved = false;
+      }, { passive: true });
+      entry.mediaItem.addEventListener('touchmove', function() {
+        touchMoved = true;
+      }, { passive: true });
+      entry.mediaItem.addEventListener('touchend', function(e) {
+        if (!touchMoved && isMobile()) {
+          openAtSlide(e);
+        }
       });
     });
 
@@ -215,15 +311,20 @@
 
     function closeFullscreen() {
       fullscreen.classList.remove('is-open');
+      document.body.classList.remove('about-split-fullscreen-open');
       document.body.style.overflow = '';
-      if (mainDotsContainer) mainDotsContainer.style.visibility = '';
+      if (progressWrap) progressWrap.style.visibility = '';
     }
 
     fullscreen.addEventListener('click', function(e) {
       if (e.target === fullscreen) closeFullscreen();
     });
     var backBtn = document.getElementById('about-split-fullscreen-back-' + sectionId);
-    if (backBtn) backBtn.addEventListener('click', function(e) { e.stopPropagation(); closeFullscreen(); });
+    if (backBtn)
+      backBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeFullscreen();
+      });
     scrollEl.addEventListener('click', function(e) {
       e.stopPropagation();
     });

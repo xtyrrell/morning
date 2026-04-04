@@ -24,53 +24,39 @@ product-info .page-width {
   margin: 0 auto;
 }
 
-/* Inline product subscribe block (sits directly under product section) */
-.product-subscribe {
-  margin: 0;
-  padding: 0 5rem 5rem;
-}
-
-.product-subscribe__divider {
-  border-top: 1px solid rgba(var(--color-foreground), 0.12);
-  margin: 0 0 3rem;
-}
-
-.product-subscribe__inner {
-  max-width: 520px;
-  margin: 0 auto;
-  text-align: center;
-}
-
-.product-subscribe__heading {
-  margin-bottom: 2rem;
-}
-
 /* =====================================================
    DESKTOP: 50/50 SPLIT - PRADA STYLE
    ===================================================== */
 @media screen and (min-width: 750px) {
 
-  /* Main container: flex row, normal page scroll */
+  /* Main container: flex row; default stretch matches column heights so info can be vertically centered */
   .product.grid {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     gap: 0 !important;
+    align-items: stretch !important;
   }
 
-  /* LEFT: Images - 50%, scrollable panel */
+  /*
+   * LEFT: Images — height follows content, capped at viewport so tall stacks still scroll inside.
+   * Fixed height: 100vh forced a full-screen-tall row + stretched info column = empty white above footer.
+   */
   .product__media-wrapper,
-  .product.grid>.product__media-wrapper {
+  .product.grid > .product__media-wrapper {
     width: 50% !important;
     max-width: 50% !important;
     min-width: 50% !important;
     flex: 0 0 50% !important;
     padding: 0 !important;
     background: #f5f5f5 !important;
-    height: 100vh !important;
+    height: auto !important;
+    max-height: 100vh !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
     scrollbar-width: none;
+    position: relative;
     /* hide Firefox scrollbar */
   }
 
@@ -79,9 +65,9 @@ product-info .page-width {
     height: 0;
   }
 
-  /* RIGHT: Info - 50%, sticky in place */
+  /* RIGHT: Info - 50%, centered in column (original Prada layout) */
   .product__info-wrapper,
-  .product.grid>.product__info-wrapper {
+  .product.grid > .product__info-wrapper {
     width: 50% !important;
     max-width: 50% !important;
     min-width: 50% !important;
@@ -230,6 +216,27 @@ product-info .page-width {
 
   .product__media-icon {
     display: none !important;
+  }
+
+  /*
+   * Fullscreen gallery (same pattern as About): Dawn's modal-opener would steal clicks.
+   * Send pointer events to the image so a single click opens our contain/cover-safe overlay.
+   */
+  .product-media-modal,
+  product-modal {
+    display: none !important;
+  }
+
+  .product__media-wrapper .product__modal-opener {
+    pointer-events: none;
+  }
+
+  .product__media-wrapper .product__modal-opener .product__media,
+  .product__media-wrapper .product__modal-opener img,
+  .product__media-wrapper .product__modal-opener .deferred-media__poster,
+  .product__media-wrapper .product__modal-opener .deferred-media__poster img {
+    pointer-events: auto;
+    cursor: zoom-in;
   }
 
   /* CRITICAL: Override any rules that hide non-active media items */
@@ -442,6 +449,7 @@ product-info .page-width {
 .product-fullscreen__scroll {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
@@ -450,157 +458,457 @@ product-info .page-width {
   cursor: default;
   touch-action: pan-y;
   scroll-snap-type: y mandatory;
+  width: 100%;
 }
 
-/* Each slide: full viewport height; image touches top & bottom, full image visible at once (no pan) */
+/* Each slide: exactly viewport size, image scales inside via object-fit */
 .product-fullscreen__item {
+  width: 100vw;
   height: 100vh;
   height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
+  flex: 0 0 100vh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
   padding: 0;
   box-sizing: border-box;
-  overflow: hidden;
+  background: #fff;
 }
 
-/* Full image visible in one glance: height fills slide (top/bottom touch), width fits so no horizontal scroll */
+/* Image fills the box; object-fit: contain scales the photo to fit entirely inside (no crop, no zoom) */
 .product-fullscreen__item img {
-  height: 100%;
-  width: auto;
-  max-width: 100%;
-  min-height: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
   object-fit: contain;
   object-position: center;
   pointer-events: none;
   user-select: none;
-  display: block;
-}
-
-/* Force full image visible: never crop, zoom or overflow (override any cover) */
-.product-fullscreen .product-fullscreen__item img {
-  object-fit: contain !important;
-  object-position: center !important;
-  max-width: 100% !important;
 }
 
 body.product-fullscreen-open .prada-nav-dots {
   visibility: hidden !important;
 }
 
-/* Mobile-only dots: hidden on desktop */
-.product-mobile-dots {
+body.product-fullscreen-open product-info .product-mobile-gallery-progress {
+  visibility: hidden !important;
+}
+
+/* Progress bar: hidden by default (mobile/desktop sections set display per breakpoint) */
+.product-mobile-gallery-progress {
   display: none;
+}
+
+@media screen and (min-width: 750px) {
+  /*
+   * 2px rail fixed to the right edge of the media column (JS sets left/top/height) — no layout gap.
+   */
+  body.template-product product-info .product-mobile-gallery-progress {
+    display: block;
+    width: 2px;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    font-size: 0;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 0;
+    z-index: 5;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  body.template-product product-info .product-mobile-gallery-progress[hidden] {
+    display: none !important;
+  }
+
+  body.template-product product-info .product-mobile-gallery-progress__track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    background: rgba(var(--color-foreground), 0.15);
+  }
+
+  body.template-product product-info .product-mobile-gallery-progress__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: rgb(var(--color-foreground));
+    transition: none;
+    pointer-events: none;
+    will-change: top, height;
+  }
 }
 
 /* =====================================================
    MOBILE: fit neatly, no overflow, touch-friendly
    ===================================================== */
 @media screen and (max-width: 749px) {
-  product-info,
-  product-info .page-width,
+  /*
+   * Allow horizontal gallery to extend to viewport edges (Paloma-style strip).
+   * overflow-x: hidden on product-info would clip the breakout.
+   */
+  product-info {
+    overflow-x: visible !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  body.template-product #MainContent {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
   .product.grid {
     overflow-x: hidden !important;
   }
 
-  /* Image area: fixed height so info fits in view; don't break slider or image loading */
-  .product__media-wrapper {
-    position: relative;
-    height: 46vh;
-    min-height: 38vh;
-    max-height: 50vh;
-    overflow: hidden;
-    background: #f5f5f5;
+  /* Don’t clip full-bleed media strip inside main product */
+  product-info .product.grid {
+    overflow-x: visible !important;
   }
 
-  .product__media-wrapper slider-component,
-  .product__media-wrapper .slider-mobile-gutter {
-    height: 100%;
+  /*
+   * Full-bleed product column: no horizontal padding on this wrapper (text uses .product__info-container padding).
+   * Avoids calc(100% + 3rem) + negative margins mis-resolving — fixes left-hug + dead gap on the right in mobile emulation.
+   */
+  product-info .page-width {
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
+    padding: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 
-  /* One slide per view, full width; smooth, precise snap */
-  .product__media-wrapper .product__media-list.slider--mobile {
-    display: flex;
+  product-info .product.grid {
+    width: 100%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  product-info .product.grid > .grid__item {
+    flex-basis: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* Ensure product section wrapper doesn’t add left offset */
+  product-info .page-width,
+  product-info .product.grid,
+  product-info .product__media-wrapper,
+  product-info .product__info-wrapper {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Disable Dawn's built-in lightbox on mobile (our custom fullscreen replaces it) */
+  .product-media-modal,
+  product-modal {
+    display: none !important;
+  }
+
+  .product__modal-opener {
+    pointer-events: none;
+  }
+
+  .product__modal-opener .product__media-icon {
+    display: none !important;
+  }
+
+  /* Re-enable pointer events on the image itself so our tap handler works */
+  .product__modal-opener img,
+  .product__modal-opener .product__media {
+    pointer-events: auto;
+  }
+
+  /* Image column: slider fixed height + thin progress bar flush below (no gap) */
+  product-info .product__media-wrapper {
+    position: relative;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    background: #fff;
+    padding: 0;
+  }
+
+  product-info .product__media-wrapper slider-component,
+  product-info .product__media-wrapper .slider-mobile-gutter,
+  product-info .product__media-wrapper slider-component:not(.thumbnail-slider--no-slide) {
+    height: 54.4vh;
+    min-height: 41.6vh;
+    max-height: 62.4vh;
+    width: 100% !important;
+    overflow: hidden;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Slider: horizontal strip, slides flush (no gaps / peek gutters) */
+  .product__media-wrapper .product__media-list.slider--mobile,
+  product-info .product__media-list.slider--mobile,
+  .product__media-list,
+  .product__media-list.grid--peek.slider--mobile {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
     height: 100%;
-    align-items: center;
+    align-items: stretch;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
     scroll-snap-stop: always;
+    scroll-padding-left: 0 !important;
+    scroll-padding-right: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pinch-zoom;
+    scrollbar-width: none;
   }
 
-  .product__media-wrapper .product__media-list .product__media-item {
-    flex: 0 0 100%;
-    min-width: 100%;
+  product-info .slider.slider--mobile {
+    scroll-padding-left: 0 !important;
+    scroll-padding-right: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  product-info .product__media-list.slider--mobile::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Dawn component-slider adds padding on slides — flush edges between images */
+  product-info .slider.slider--mobile.contains-media .slider__slide {
+    --focus-outline-padding: 0 !important;
+    --shadow-visible: 0 !important;
+  }
+
+  product-info .slider.slider--mobile .slider__slide,
+  product-info .slider.slider--mobile .product__media-item {
+    padding: 0 !important;
+  }
+
+  .product__media-wrapper .product__media-list.slider--mobile::after,
+  .product__media-list.slider--mobile::after,
+  .slider--mobile::after {
+    display: none !important;
+    content: none !important;
+    padding-left: 0 !important;
+  }
+
+  /* Override component-slider.css scroll-padding-left */
+  .slider.slider--mobile {
+    scroll-padding-left: 0 !important;
+  }
+
+  .product__media-wrapper .product__media-list .product__media-item,
+  product-info .product__media-list .product__media-item,
+  .product__media-list .product__media-item,
+  .grid--peek.slider--mobile .grid__item {
+    flex: 0 0 100% !important;
+    min-width: 100% !important;
+    width: 100% !important;
+    max-width: none !important;
     height: 100%;
+    min-height: 41.6vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    box-sizing: border-box !important;
     scroll-snap-align: start;
     scroll-snap-stop: always;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
   }
 
-  /* Mobile slider dots: small, bottom center of image area */
-  .product-mobile-dots {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.4rem;
+  /*
+   * Main product only: one full-width slide at a time (no side peek); slides flush.
+   */
+  product-info .product__media-list.grid {
+    column-gap: 0 !important;
+    row-gap: 0 !important;
+  }
+
+  product-info .grid--peek.slider--mobile .grid__item,
+  product-info .product__media-list .product__media-item {
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  product-info .product__media-list .product__media-item {
+    flex: 0 0 100% !important;
+    min-width: 100% !important;
+    width: 100% !important;
+    scroll-snap-stop: normal;
+  }
+
+  /*
+   * Beats .product__media-wrapper .product__media-list .product__media-item (3 classes only):
+   * column stack + full-width children so media isn’t left-hung with empty space on the right.
+   */
+  product-info .product__media-wrapper .product__media-list .product__media-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+  }
+
+  product-info .product__media-wrapper .product-media-container {
+    flex: 1 1 auto !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  product-info .product__media-wrapper .product__modal-opener {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Dawn .global-media-settings border + radius reads as a gap between images */
+  product-info .product__media-wrapper .global-media-settings {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  product-info .product__media-wrapper .global-media-settings::after {
+    display: none !important;
+    content: none !important;
+    box-shadow: none !important;
+  }
+
+  product-info .product__media-wrapper .global-media-settings img,
+  product-info .product__media-wrapper .global-media-settings video,
+  product-info .product__media-wrapper .global-media-settings .deferred-media__poster img {
+    border-radius: 0 !important;
+  }
+
+  .product__media-wrapper .product__media-list .product__media-item:first-of-type,
+  .grid--peek.slider .grid__item:first-of-type {
+    margin-left: 0 !important;
+  }
+
+  .product__media-wrapper .product__media-list.slider--mobile .product__media-item {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .product__media-wrapper .product__media-list.slider--mobile {
+    margin-bottom: 0;
+  }
+
+  /* Thin bar under gallery, flush (Paloma-style); JS removes [hidden] when 2+ slides */
+  .product-mobile-gallery-progress {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    font-size: 0;
+  }
+
+  .product-mobile-gallery-progress[hidden] {
+    display: none !important;
+  }
+
+  /* Dawn slider UI: < 1/3 > counter + arrows — redundant with swipe + progress bar */
+  product-info .product__media-wrapper .slider-buttons {
+    display: none !important;
+  }
+
+  .product-mobile-gallery-progress__track {
+    position: relative;
+    width: 100%;
+    height: 2px;
+    background: rgba(var(--color-foreground), 0.15);
+  }
+
+  .product-mobile-gallery-progress__fill {
     position: absolute;
+    top: 0;
     left: 0;
-    right: 0;
-    bottom: max(0.75rem, env(safe-area-inset-bottom));
-    z-index: 2;
+    height: 2px;
+    background: rgb(var(--color-foreground));
+    width: 100%;
+    transition: none;
     pointer-events: none;
-    padding: 0 1rem;
-  }
-
-  .product-mobile-dots span {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.25);
-    pointer-events: auto;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-
-  .product-mobile-dots span.active {
-    background: rgba(0, 0, 0, 0.7);
-    transform: scale(1.2);
+    will-change: left, width;
   }
 
   .product__media-wrapper .product-media-container {
     width: 100%;
     height: 100%;
-    max-height: 46vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    min-height: 41.6vh;
+    padding: 0;
+    margin: 0;
+    display: block;
   }
 
-  /* Keep space for image to load; constrain max height */
+  /*
+   * Theme uses constrain_height + media_fit contain by default — see rules above (product-info .product-media-container).
+   */
+
+  .product__media-wrapper .product__modal-opener {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 41.6vh;
+  }
+
   .product__media-wrapper .product-media-container .media {
     width: 100%;
-    min-height: 200px;
-    max-height: 46vh;
+    height: 100%;
+    min-height: 41.6vh;
+    padding: 0 !important;
     display: block;
     position: relative;
   }
 
+  /* Image fills container edge-to-edge; ensure img has a containing block so it loads */
   .product__media-wrapper .media img,
   .product__media-wrapper .product__media img {
-    max-height: 46vh;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    object-position: center;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
     display: block;
+  }
+
+  product-info .product__media-wrapper .media img,
+  product-info .product__media-wrapper .product__media img,
+  product-info .product__media-wrapper .global-media-settings img {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
   }
 
   /* Compact info so title, description, price, sold out fit in view */
@@ -666,7 +974,29 @@ body.product-fullscreen-open .prada-nav-dots {
     display: none !important;
   }
 
-  /* Product fullscreen: touch-friendly */
+  /* Product fullscreen on mobile: fit to height – image touches top & bottom, aspect ratio preserved, letterboxing on sides */
+  .product-fullscreen {
+    background: #fff;
+  }
+
+  .product-fullscreen__item {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .product-fullscreen__item img {
+    display: block;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+
+  /* Product fullscreen: touch-friendly controls */
   .product-fullscreen__back {
     top: max(1rem, env(safe-area-inset-top));
     left: max(1rem, env(safe-area-inset-left));
@@ -681,22 +1011,27 @@ body.product-fullscreen-open .prada-nav-dots {
     height: 1.4rem;
   }
 
+  /* Fullscreen dots: same as desktop (8px dots, 0.75rem gap) */
   .product-fullscreen__dots {
-    left: max(1rem, env(safe-area-inset-left));
-    gap: 0.4rem;
+    left: max(1.5rem, env(safe-area-inset-left));
+    gap: 0.75rem;
   }
 
   .product-fullscreen__dots span {
-    width: 4px;
-    height: 4px;
-    padding: 20px;
-    margin: -20px;
-    box-sizing: content-box;
-    background-clip: content-box;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.2);
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .product-fullscreen__dots span:hover {
+    background: rgba(0, 0, 0, 0.4);
   }
 
   .product-fullscreen__dots span.active {
-    transform: scale(1.2);
+    background: rgb(var(--color-foreground));
+    transform: scale(1.25);
   }
 }
 
@@ -814,6 +1149,16 @@ body.product-fullscreen-open .prada-nav-dots {
   opacity: 0.5;
 }
 
+.product-form__buttons--qty-checkout-row:has(.product-form__submit[aria-disabled='true'])
+  .shopify-payment-button
+  .shopify-payment-button__button[disabled],
+.product-form__buttons--qty-checkout-row:has(.product-form__submit[disabled])
+  .shopify-payment-button
+  .shopify-payment-button__button[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 @media screen and (forced-colors: active) {
   .product-form__submit[aria-disabled='true'] {
     color: Window;
@@ -887,6 +1232,29 @@ a.product__text {
 
 .product .price .badge {
   margin-bottom: 0.5rem;
+}
+
+/* Sold-out pill: compact + aligned with price (matches shop grid treatment) */
+.product__info-container .price.price--sold-out {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+}
+
+.product__info-container .price.price--sold-out .price__container {
+  margin-bottom: 0;
+}
+
+.product__info-container .price.price--sold-out .price__badge-sold-out {
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.5rem 0.18rem;
+  margin: 0;
+  border-radius: 0.25rem;
+  margin-bottom: 0 !important;
 }
 
 .product .price__container {
@@ -982,6 +1350,80 @@ a.product__text {
   max-width: 44rem;
 }
 
+/* Quantity + buy column side by side (adjacent blocks).
+   Dawn sets .product-form__input { flex: 0 0 100% }; override here. */
+.product-form__qty-checkout-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 1.2rem;
+}
+
+.product-form__qty-checkout-row > .product-form__quantity.product-form__input {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  margin-bottom: 0;
+}
+
+.product-form__qty-checkout-row > .product-form__buy-buttons-shell {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.product-form__qty-checkout-row > .product-form__quantity .quantity__rules {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden;
+}
+
+.product-form--in-qty-row,
+.product-form--in-qty-row.product-form,
+.product__info-container .product-form--in-qty-row,
+.product__info-container .product-form--in-qty-row.product-form {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.product-form__qty-checkout-row .product-form__error-message-wrapper {
+  display: none !important;
+}
+
+.product-form__qty-checkout-row .form {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.product-form__qty-checkout-row .product-form__buttons {
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none;
+}
+
+.product-form__qty-checkout-row .product-form__submit.button {
+  margin: 0 !important;
+  width: 100%;
+  height: calc(var(--inputs-border-width) * 2 + 4.5rem);
+  min-height: 0;
+}
+
+.product-form__qty-checkout-row .shopify-payment-button {
+  width: 100%;
+  margin: 0 !important;
+}
+
+.product-form__qty-checkout-row .shopify-payment-button__more-options {
+  display: none;
+}
+
+.product-form__qty-checkout-row .quantity {
+  height: calc(var(--inputs-border-width) * 2 + 4.5rem);
+  min-height: 0;
+}
+
 .product--no-media .product__info-container>modal-opener {
   display: block;
   text-align: center;
@@ -1031,6 +1473,34 @@ a.product__text {
 
   .product--mobile-columns .product__media-item {
     width: calc(50% - 1.5rem - var(--grid-mobile-horizontal-spacing));
+  }
+
+  /* Undo Dawn peek/gutter on main product gallery only — flush carousel like Paloma Wool */
+  product-info .product__media-list {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
+  }
+
+  product-info .product__media-wrapper slider-component:not(.thumbnail-slider--no-slide) {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+  }
+
+  product-info .product__media-list .product__media-item {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: none !important;
+  }
+
+  product-info .slider--mobile::after {
+    display: none !important;
+    content: none !important;
+    padding: 0 !important;
+    width: 0 !important;
   }
 }
 
@@ -2114,5 +2584,55 @@ a.product__text {
 
   .recipient-form>input[type='checkbox']:checked+label .icon-checkmark {
     border: none;
+  }
+}
+
+/*
+ * Mobile product gallery — last in this file so it wins over base.css .grid--peek /
+ * component-slider (see main-product.liquid: section CSS loads after components).
+ */
+@media screen and (max-width: 749px) {
+  product-info ul.product__media-list.grid--peek.slider.slider--mobile .product__media-item.grid__item,
+  product-info .grid--peek.slider--mobile .product__media-item,
+  product-info .grid--peek.slider--mobile .grid__item {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    flex: 0 0 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  product-info ul.product__media-list.grid--peek.slider .grid__item:first-of-type,
+  product-info .grid--peek.slider--mobile .grid__item:first-of-type {
+    margin-left: 0 !important;
+  }
+
+  product-info ul.product__media-list.grid--peek.slider::after,
+  product-info ul.product__media-list.grid--peek.slider--mobile::after {
+    display: none !important;
+    content: none !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    width: 0 !important;
+  }
+
+  product-info .slider.slider--mobile {
+    scroll-padding-left: 0 !important;
+    scroll-padding-right: 0 !important;
+  }
+
+  product-info .product__media-wrapper .global-media-settings {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  product-info .product__media-wrapper .global-media-settings::after {
+    display: none !important;
+    content: none !important;
   }
 }

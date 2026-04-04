@@ -4,7 +4,7 @@
     {
       "label": "Shopify: Theme Dev (preview)",
       "type": "shell",
-      "command": "shopify theme dev --store=jdqc8i-3r.myshopify.com",
+      "command": "shopify theme dev --path .",
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {}

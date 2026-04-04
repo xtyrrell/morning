@@ -17,6 +17,12 @@
     align-items: center;
   }
 
+  /* Same box model as index <h1> so logo + nav align consistently on every template */
+  .header2__logo-heading {
+    margin: 0;
+    line-height: 0;
+  }
+
   .header2__logo-link {
     text-decoration: none;
     color: rgb(var(--color-foreground));
@@ -92,6 +98,7 @@
   /* Spacer reserves space so content is not hidden under fixed header */
   .header-spacer {
     height: 120px;
+    flex-shrink: 0;
     transition: height 0.45s ease-in-out;
   }
 
@@ -147,6 +154,7 @@
     }
     .header-spacer {
       height: 72px;
+      flex-shrink: 0;
       transition: height 0.3s ease;
     }
   }
@@ -157,7 +165,9 @@
   <header class="header2 page-width">
     <div class="header2__logo">
       {%- if request.page_type == 'index' -%}
-        <h1 class="header2__logo-heading" style="margin: 0; line-height: 0;">
+        <h1 class="header2__logo-heading">
+      {%- else -%}
+        <div class="header2__logo-heading">
       {%- endif -%}
       <a href="{{ routes.root_url }}" class="header2__logo-link">
         {%- if section.settings.logo != blank -%}
@@ -180,6 +190,8 @@
       </a>
       {%- if request.page_type == 'index' -%}
         </h1>
+      {%- else -%}
+        </div>
       {%- endif -%}
     </div>
 
@@ -222,9 +234,14 @@
       return { expanded: 120, shrunk: 60 };
     }
 
+    function scrollPosition() {
+      return window.scrollY || window.pageYOffset || (document.documentElement && document.documentElement.scrollTop) || 0;
+    }
+
     function onScroll() {
       var heights = getHeights();
-      var shouldShrink = window.scrollY > 60;
+      /* Slightly above old 60px threshold: avoids shrink from tiny layout shifts on image-heavy pages (e.g. About). */
+      var shouldShrink = scrollPosition() > 80;
       if (shouldShrink) {
         header.classList.add('header2--shrunk');
         header.style.height = heights.shrunk + 'px';
@@ -245,6 +262,20 @@
     onScroll();
     window.addEventListener('scroll', function() { window.requestAnimationFrame(onScroll); }, { passive: true });
     window.addEventListener('resize', function() { setInitialHeight(); onScroll(); });
+    window.addEventListener('load', function() {
+      window.requestAnimationFrame(function() {
+        setInitialHeight();
+        onScroll();
+      });
+    });
+    window.addEventListener('pageshow', function(ev) {
+      if (ev.persisted) {
+        window.requestAnimationFrame(function() {
+          setInitialHeight();
+          onScroll();
+        });
+      }
+    });
   })();
 </script>
 
